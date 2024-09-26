@@ -7,15 +7,28 @@ var express_1 = __importDefault(require("express"));
 var dotenv_1 = __importDefault(require("dotenv"));
 var connectDB_1 = __importDefault(require("./db/connectDB"));
 var user_route_1 = __importDefault(require("./routes/user.route"));
+var auth_routes_1 = __importDefault(require("./routes/auth.routes")); // Ensure this import is correct
+var passport_1 = __importDefault(require("passport"));
+var express_session_1 = __importDefault(require("express-session"));
 dotenv_1.default.config();
 (0, connectDB_1.default)();
 var app = (0, express_1.default)();
 app.use(express_1.default.json());
+app.use((0, express_session_1.default)({
+    secret: process.env.EXAMPLE_CLIENT_SECRET || "default_secret_key",
+    resave: false,
+    saveUninitialized: true,
+}));
+// Initialize Passport
+app.use(passport_1.default.initialize());
+app.use(passport_1.default.session());
+// Use routes
+app.use("/users", user_route_1.default);
+app.use(auth_routes_1.default); // Ensure that the auth routes are added here
 var port = process.env.PORT || 3000;
 app.get("/", function (req, res) {
     res.send("Welcome to the port 3000");
 });
-app.use("/users", user_route_1.default);
 app.listen(port, function () {
     console.log("Connected successfully on port ".concat(port));
 });

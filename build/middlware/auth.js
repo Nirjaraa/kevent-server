@@ -39,43 +39,45 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isUser = void 0;
-var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-var User_model_1 = __importDefault(require("../models/User.model"));
-var isUser = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var token, decoded, user, error_1;
+var passport_1 = __importDefault(require("passport"));
+var passport_oauth2_1 = require("passport-oauth2");
+var User_model_1 = __importDefault(require("../models/User.model")); // Ensure this path is correct
+var dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+passport_1.default.use(new passport_oauth2_1.Strategy({
+    authorizationURL: "https://accounts.google.com/o/oauth2/auth",
+    tokenURL: "https://accounts.google.com/o/oauth2/token",
+    clientID: process.env.EXAMPLE_CLIENT_ID || "defaultClientID",
+    clientSecret: process.env.EXAMPLE_CLIENT_SECRET || "defaultClientSecret",
+    callbackURL: "http://localhost:3000/auth/google/callback",
+    scope: ["email", "profile"], // Ensure you have the right scopes
+}, function (accessToken, refreshToken, profile, done) { return __awaiter(void 0, void 0, void 0, function () {
+    var firstName, lastName, email, exampleId, user, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                if (!(req.headers.authorization && req.headers.authorization.startsWith("Bearer"))) return [3 /*break*/, 5];
-                _a.label = 1;
+                _a.trys.push([0, 2, , 3]);
+                console.log("Profile data:", profile); // Log the profile data
+                firstName = profile.name.givenName || "";
+                lastName = profile.name.familyName || "";
+                email = profile.emails[0].value || "";
+                exampleId = profile.id;
+                return [4 /*yield*/, User_model_1.default.findOneAndUpdate({ email: email }, // Find user by email
+                    {
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: email,
+                        exampleId: exampleId,
+                    }, { upsert: true, new: true } // Create user if not found
+                    )];
             case 1:
-                _a.trys.push([1, 3, , 4]);
-                // Extract the token from the authorization header
-                token = req.headers.authorization.split(" ")[1];
-                decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-                return [4 /*yield*/, User_model_1.default.findById(decoded.id).select("-password")];
-            case 2:
                 user = _a.sent();
-                // If user is not found, respond with a 404 error
-                if (!user) {
-                    return [2 /*return*/, res.status(404).json({ error: "User not found" })];
-                }
-                // Assign the found user to req.user
-                req.user = user;
-                // Proceed to the next middleware or route handler
-                next();
-                return [3 /*break*/, 4];
-            case 3:
-                error_1 = _a.sent();
-                console.error(error_1); // Log the error for debugging purposes
-                return [2 /*return*/, res.status(401).json({ error: "Not Authorized" })];
-            case 4: return [3 /*break*/, 6];
-            case 5: 
-            // If token is not found, respond with a 401 error
-            return [2 /*return*/, res.status(401).json({ error: "Token not found" })];
-            case 6: return [2 /*return*/];
+                return [2 /*return*/, done(null, user)]; // Pass user to the next middleware
+            case 2:
+                err_1 = _a.sent();
+                return [2 /*return*/, done(err_1)];
+            case 3: return [2 /*return*/];
         }
     });
-}); };
-exports.isUser = isUser;
+}); }));
+exports.default = passport_1.default;

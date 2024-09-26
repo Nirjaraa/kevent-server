@@ -14,6 +14,7 @@ const UserSchema = new Schema<IUser>(
     email: {
       type: String,
       required: true,
+      unique: true,
     },
     password: {
       type: String,
@@ -29,7 +30,12 @@ const UserSchema = new Schema<IUser>(
     },
     batch: {
       type: Number,
-      requires: true,
+      required: true,
+    },
+    exampleId: {
+      // Add exampleId field
+      type: String,
+      required: false,
     },
   },
   {

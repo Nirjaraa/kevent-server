@@ -36,6 +36,7 @@ var UserSchema = new mongoose_1.Schema({
     email: {
         type: String,
         required: true,
+        unique: true,
     },
     password: {
         type: String,
@@ -51,7 +52,12 @@ var UserSchema = new mongoose_1.Schema({
     },
     batch: {
         type: Number,
-        requires: true,
+        required: true,
+    },
+    exampleId: {
+        // Add exampleId field
+        type: String,
+        required: false,
     },
 }, {
     timestamps: true,

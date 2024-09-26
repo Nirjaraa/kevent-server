@@ -8,4 +8,5 @@ export interface IUser extends Document {
   batch: number;
   department: string;
   avatarURL?: string;
+  exampleId?: string;
 }

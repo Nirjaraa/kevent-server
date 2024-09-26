@@ -1,10 +1,9 @@
-import express from "express";
+import { IUser } from "./models/User.model"; // Import IUser type
 
 declare global {
   namespace Express {
     interface Request {
-      user: IUser; // Custom property
-      // You can add more custom properties here
+      user?: IUser | null; // Use IUser instead of User
     }
   }
 }
