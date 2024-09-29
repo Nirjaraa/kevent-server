@@ -12,7 +12,8 @@ router.get(
 );
 
 // OAuth callback route
-router.get("/auth/google/callback", passport.authenticate("oauth2", { failureRedirect: "/auth/failure" }), (req, res) => {
+router.get("/auth/google/callback",
+   passport.authenticate("oauth2", { failureRedirect: "/auth/failure" }), (req, res) => {
   // On successful authentication
   res.json({
     message: "Authentication successful",

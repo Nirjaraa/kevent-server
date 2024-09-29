@@ -5,4 +5,6 @@ var router = (0, express_1.Router)();
 var user_controllers_1 = require("../controllers/user.controllers");
 router.post("/register", user_controllers_1.registerUsers);
 router.post("/login", user_controllers_1.login);
+router.post("/forgot-password", user_controllers_1.forgotPassword);
+router.post("change-password", user_controllers_1.changePassword);
 exports.default = router;

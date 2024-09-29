@@ -39,11 +39,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.registerUsers = void 0;
+exports.changePassword = exports.forgotPassword = exports.login = exports.registerUsers = void 0;
 var error_handler_1 = require("../utils/error-handler");
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var User_model_1 = __importDefault(require("../models/User.model"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+var sendEmail_1 = require("../utils/sendEmail");
+var uuidv4 = require("uuid").v4;
 //SIGNUP
 var registerUsers = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, firstName, lastName, email, password, batch, department, avatarURL, userExists, salt, hashedPassword, newUser, userWithoutPassword, error_1, errorMessage;
@@ -127,3 +129,75 @@ var login = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
     });
 }); };
 exports.login = login;
+//FORGOT-PASSWORD
+var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var email, user, otp, emailText, subject, error_3, errorMessage;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                email = req.body.email;
+                return [4 /*yield*/, User_model_1.default.findOne({ email: email })];
+            case 1:
+                user = _a.sent();
+                if (!user) {
+                    return [2 /*return*/, res.status(400).send("User not found")];
+                }
+                otp = uuidv4().slice(0, 6);
+                user.resetPasswordOtp = otp;
+                user.resetPasswordOtpExpires = new Date(Date.now() + 300000); // OTP expires in 5 minutes
+                return [4 /*yield*/, user.save()];
+            case 2:
+                _a.sent();
+                emailText = (0, sendEmail_1.sendOtp)(user.firstName, otp);
+                subject = "Verification code";
+                return [4 /*yield*/, (0, sendEmail_1.sendEmail)(user.email, subject, emailText)];
+            case 3:
+                _a.sent(); // Send the email
+                console.log(email);
+                console.log(otp);
+                return [2 /*return*/, res.status(200).json({ message: "OTP sent to email" })];
+            case 4:
+                error_3 = _a.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_3);
+                return [2 /*return*/, res.status(500).json({ error: errorMessage })];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.forgotPassword = forgotPassword;
+//CHANGE PASSWORD
+var changePassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, email, password, user, salt, hashedPassword, error_4, errorMessage;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 5, , 6]);
+                _a = req.body, email = _a.email, password = _a.password;
+                return [4 /*yield*/, User_model_1.default.findOne({ email: email })];
+            case 1:
+                user = _b.sent();
+                if (!user) {
+                    return [2 /*return*/, res.status(400).send("User not found")];
+                }
+                return [4 /*yield*/, bcryptjs_1.default.genSalt(10)];
+            case 2:
+                salt = _b.sent();
+                return [4 /*yield*/, bcryptjs_1.default.hash(password, salt)];
+            case 3:
+                hashedPassword = _b.sent();
+                user.password = hashedPassword;
+                return [4 /*yield*/, user.save()];
+            case 4:
+                _b.sent();
+                res.status(200).send("Password changed successfully");
+                return [3 /*break*/, 6];
+            case 5:
+                error_4 = _b.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_4);
+                return [2 /*return*/, res.status(500).json({ error: errorMessage })];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
+exports.changePassword = changePassword;

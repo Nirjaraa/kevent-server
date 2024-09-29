@@ -18,7 +18,7 @@ const UserSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: true,
+      required: false, //not required for oauth
     },
     department: {
       type: String,
@@ -36,6 +36,13 @@ const UserSchema = new Schema<IUser>(
       // Add exampleId field
       type: String,
       required: false,
+    },
+    resetPasswordOtp: {
+      type: String,
+    },
+
+    resetPasswordOtpExpires: {
+      type: Date,
     },
   },
   {

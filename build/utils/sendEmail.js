@@ -39,50 +39,48 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var passport_1 = __importDefault(require("passport"));
-var passport_oauth2_1 = require("passport-oauth2");
-var User_model_1 = __importDefault(require("../models/User.model")); // Ensure this path is correct
+exports.sendOtp = exports.sendEmail = void 0;
+var nodemailer_1 = __importDefault(require("nodemailer"));
 var dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-passport_1.default.use(new passport_oauth2_1.Strategy({
-    authorizationURL: "https://accounts.google.com/o/oauth2/auth",
-    tokenURL: "https://accounts.google.com/o/oauth2/token",
-    clientID: process.env.EXAMPLE_CLIENT_ID || "defaultClientID",
-    clientSecret: process.env.EXAMPLE_CLIENT_SECRET || "defaultClientSecret",
-    callbackURL: "http://localhost:3000/auth/google/callback",
-    scope: ["https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"],
-}, function (accessToken, refreshToken, profile, done) { return __awaiter(void 0, void 0, void 0, function () {
-    var firstName, lastName, email, exampleId, user, err_1;
-    var _a, _b, _c, _d;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+var user = process.env.EMAIL;
+var pass = process.env.EMAIL_APP_PW;
+var sendEmail = function (recipient, subject, text) { return __awaiter(void 0, void 0, void 0, function () {
+    var transporter, mailOptions, error_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                _e.trys.push([0, 2, , 3]);
-                console.log("Profile data:", profile); // Log the profile data
-                console.log("Full profile object:", JSON.stringify(profile, null, 2));
-                if (!profile || !profile.name || !profile.emails) {
-                    return [2 /*return*/, done(new Error("Profile information is missing or incomplete"))];
-                }
-                firstName = ((_a = profile === null || profile === void 0 ? void 0 : profile.name) === null || _a === void 0 ? void 0 : _a.givenName) || "";
-                lastName = ((_b = profile === null || profile === void 0 ? void 0 : profile.name) === null || _b === void 0 ? void 0 : _b.familyName) || "";
-                email = ((_d = (_c = profile === null || profile === void 0 ? void 0 : profile.emails) === null || _c === void 0 ? void 0 : _c[0]) === null || _d === void 0 ? void 0 : _d.value) || "";
-                exampleId = profile.id;
-                return [4 /*yield*/, User_model_1.default.findOneAndUpdate({ email: email }, // Find user by email
-                    {
-                        firstName: firstName,
-                        lastName: lastName,
-                        email: email,
-                        exampleId: exampleId,
-                    }, { upsert: true, new: true } // Create user if not found
-                    )];
+                transporter = nodemailer_1.default.createTransport({
+                    service: "gmail",
+                    auth: {
+                        user: user,
+                        pass: pass,
+                    },
+                });
+                mailOptions = {
+                    from: user,
+                    to: recipient,
+                    subject: subject,
+                    text: text,
+                };
+                _a.label = 1;
             case 1:
-                user = _e.sent();
-                return [2 /*return*/, done(null, user)]; // Pass user to the next middleware
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, transporter.sendMail(mailOptions)];
             case 2:
-                err_1 = _e.sent();
-                return [2 /*return*/, done(err_1)];
-            case 3: return [2 /*return*/];
+                _a.sent();
+                console.log("Email sent successfully");
+                return [3 /*break*/, 4];
+            case 3:
+                error_1 = _a.sent();
+                console.error("Error occurred while sending email:", error_1);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
-}); }));
-exports.default = passport_1.default;
+}); };
+exports.sendEmail = sendEmail;
+var sendOtp = function (firstName, otp) {
+    return "Dear ".concat(firstName, ",\n    Your OTP code is ").concat(otp);
+};
+exports.sendOtp = sendOtp;

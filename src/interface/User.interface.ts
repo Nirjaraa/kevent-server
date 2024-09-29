@@ -9,4 +9,6 @@ export interface IUser extends Document {
   department: string;
   avatarURL?: string;
   exampleId?: string;
+  resetPasswordOtp?: string;
+  resetPasswordOtpExpires?: Date;
 }

@@ -13,16 +13,20 @@ passport.use(
       clientID: process.env.EXAMPLE_CLIENT_ID || "defaultClientID",
       clientSecret: process.env.EXAMPLE_CLIENT_SECRET || "defaultClientSecret",
       callbackURL: "http://localhost:3000/auth/google/callback",
-      scope: ["email", "profile"], // Ensure you have the right scopes
+      scope: ["https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"],
     },
     async (accessToken: string, refreshToken: string, profile: any, done: any) => {
       try {
         console.log("Profile data:", profile); // Log the profile data
+        console.log("Full profile object:", JSON.stringify(profile, null, 2));
+        if (!profile || !profile.name || !profile.emails) {
+          return done(new Error("Profile information is missing or incomplete"));
+        }
 
         // Extract necessary information from the profile object
-        const firstName = profile.name.givenName || "";
-        const lastName = profile.name.familyName || "";
-        const email = profile.emails[0].value || "";
+        const firstName = profile?.name?.givenName || "";
+        const lastName = profile?.name?.familyName || "";
+        const email = profile?.emails?.[0]?.value || "";
         const exampleId = profile.id; // Google ID
 
         // Find or create user in the database

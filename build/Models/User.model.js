@@ -40,7 +40,7 @@ var UserSchema = new mongoose_1.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: false, //not required for oauth
     },
     department: {
         type: String,
@@ -58,6 +58,12 @@ var UserSchema = new mongoose_1.Schema({
         // Add exampleId field
         type: String,
         required: false,
+    },
+    resetPasswordOtp: {
+        type: String,
+    },
+    resetPasswordOtpExpires: {
+        type: Date,
     },
 }, {
     timestamps: true,
