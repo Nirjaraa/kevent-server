@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changePassword = exports.forgotPassword = exports.login = exports.registerUsers = void 0;
+exports.updateProfile = exports.changePassword = exports.forgotPassword = exports.login = exports.registerUsers = void 0;
 var error_handler_1 = require("../utils/error-handler");
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var User_model_1 = __importDefault(require("../models/User.model"));
@@ -201,3 +201,30 @@ var changePassword = function (req, res) { return __awaiter(void 0, void 0, void
     });
 }); };
 exports.changePassword = changePassword;
+//UPDATE PROFILE
+var updateProfile = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var userId, _a, firstName, lastName, email, password, batch, department, avatarURL, user, error_5, errorMessage;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                userId = req.params.id;
+                _a = req.body, firstName = _a.firstName, lastName = _a.lastName, email = _a.email, password = _a.password, batch = _a.batch, department = _a.department, avatarURL = _a.avatarURL;
+                return [4 /*yield*/, User_model_1.default.findByIdAndUpdate(userId, { firstName: firstName, lastName: lastName, email: email, password: password, batch: batch, department: department, avatarURL: avatarURL }, { new: true, runValidators: true } // Return updated document and validate
+                    ).select("-password -createdAt -resetPasswordOtp -resetPasswordOtpExpires -updatedAt")];
+            case 1:
+                user = _b.sent();
+                // Handle case where the user is not found
+                if (!user) {
+                    return [2 /*return*/, res.status(404).json({ message: "User not found" })];
+                }
+                return [2 /*return*/, res.status(200).json({ message: "Your profile has been updated", user: user })];
+            case 2:
+                error_5 = _b.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_5);
+                return [2 /*return*/, res.status(500).json({ error: errorMessage })];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.updateProfile = updateProfile;
