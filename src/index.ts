@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import connectDB from "./db/connectDB";
 import userRoutes from "./routes/user.route";
 import eventRoutes from "./routes/event.route";
+// import ticketRoutes from "./routes/ticket.route";
 import authRoutes from "./routes/auth.routes"; // Ensure this import is correct
 import passport from "passport";
 import session from "express-session";
@@ -27,6 +28,7 @@ app.use(passport.session());
 // Use routes
 app.use("/users", userRoutes);
 app.use("/events", eventRoutes);
+// app.use("/tickets", ticketRoutes);
 
 app.use(authRoutes); // Ensure that the auth routes are added here
 

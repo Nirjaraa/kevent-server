@@ -1,6 +1,7 @@
 import { NextFunction, Response, Request } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User.model";
+import { IUser } from "../interface/User.interface";
 
 const isUser = async (req: Request, res: Response, next: NextFunction) => {
   let token;
@@ -23,7 +24,7 @@ const isUser = async (req: Request, res: Response, next: NextFunction) => {
       }
 
       // Assign the found user to req.user
-      req.user = user;
+      req.user = user as IUser;
 
       // Proceed to the next middleware or route handler
       next();

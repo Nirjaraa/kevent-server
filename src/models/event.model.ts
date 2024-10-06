@@ -40,6 +40,12 @@ const eventSchema = new Schema<IEvent>(
       type: String,
       required: true,
     },
+    capacity: {
+      type: Number,
+    },
+    bookedTickets: {
+      type: Number,
+    },
   },
   {
     timestamps: true,

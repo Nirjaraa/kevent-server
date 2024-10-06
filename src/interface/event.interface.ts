@@ -8,4 +8,6 @@ export interface IEvent extends Document {
   Files?: String[];
   Images?: String[];
   mainImage?: String;
+  capacity?: Number;
+  bookedTickets?: Number;
 }

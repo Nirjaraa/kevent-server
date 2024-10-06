@@ -1,4 +1,7 @@
+import mongoose from "mongoose";
+
 export interface IUser extends Document {
+  id: any;
   firstName: string;
   lastName: string;
   email: string;

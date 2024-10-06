@@ -1,8 +1,9 @@
 import { Router } from "express";
 const router: Router = Router();
 import { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents } from "../controllers/event.controllers";
+import { isUser } from "../middlware/auth-Middleware";
 
-router.post("/createevent", createEvent);
+router.post("/createevent", isUser, createEvent);
 router.put("/updateevent/:id", updateEvent);
 router.delete("/deleteevent/:id", deleteEvent);
 router.get("/viewevents", viewAllEvents);

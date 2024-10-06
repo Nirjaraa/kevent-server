@@ -3,6 +3,7 @@ import { errorHandler } from "../utils/error-handler";
 import Event from "../models/event.model";
 import { isValidObjectId } from "../utils/isValidObjectId";
 import { Request, Response } from "express";
+import Ticket from "../models/ticket.model";
 
 //CREATE EVENT
 const createEvent = async (req: Request, res: Response) => {
@@ -127,4 +128,15 @@ const searchEvents = async (req: Request, res: Response) => {
   }
 };
 
-export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents };
+//CALCULATE THE BOOKED TICKETS (IFF CAPACITY IS PROVIDED)
+const calculateBookedTickets = async (eventId: mongoose.Schema.Types.ObjectId) => {
+  const tickets = await Ticket.find({ eventId });
+
+  const bookedTickets = tickets.reduce((total: number, ticket) => {
+    const ticketCount = ticket.ticketCount || 0;
+    return total + Number(ticketCount);
+  }, 0);
+
+  return bookedTickets;
+};
+export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents, calculateBookedTickets };

@@ -39,9 +39,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchEvents = exports.viewAnEvent = exports.viewAllEvents = exports.deleteEvent = exports.updateEvent = exports.createEvent = void 0;
+exports.calculateBookedTickets = exports.searchEvents = exports.viewAnEvent = exports.viewAllEvents = exports.deleteEvent = exports.updateEvent = exports.createEvent = void 0;
 var error_handler_1 = require("../utils/error-handler");
 var event_model_1 = __importDefault(require("../models/event.model"));
+var ticket_model_1 = __importDefault(require("../models/ticket.model"));
 //CREATE EVENT
 var createEvent = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, Title, Description, contactNumber, Venue, date, Price, Files, Images, mainImage, existingEvent, creatingEvent, error_1, errorMessage;
@@ -207,3 +208,20 @@ var searchEvents = function (req, res) { return __awaiter(void 0, void 0, void 0
     });
 }); };
 exports.searchEvents = searchEvents;
+//CALCULATE THE BOOKED TICKETS (IFF CAPACITY IS PROVIDED)
+var calculateBookedTickets = function (eventId) { return __awaiter(void 0, void 0, void 0, function () {
+    var tickets, bookedTickets;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, ticket_model_1.default.find({ eventId: eventId })];
+            case 1:
+                tickets = _a.sent();
+                bookedTickets = tickets.reduce(function (total, ticket) {
+                    var ticketCount = ticket.ticketCount || 0;
+                    return total + Number(ticketCount);
+                }, 0);
+                return [2 /*return*/, bookedTickets];
+        }
+    });
+}); };
+exports.calculateBookedTickets = calculateBookedTickets;

@@ -24,53 +24,25 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importStar(require("mongoose"));
-var eventSchema = new mongoose_1.Schema({
-    Title: {
-        type: String,
+var ticketSchema = new mongoose_1.Schema({
+    userId: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
         required: true,
     },
-    Description: {
-        type: String,
-        required: true,
-    },
-    contactNumber: {
-        type: Number,
-        required: true,
-    },
-    Venue: {
-        type: String,
-        required: false, //not required for oauth
-    },
-    date: {
-        type: Date,
-        required: true,
-    },
-    Price: {
-        type: String,
-        required: false,
-    },
-    Files: {
-        type: [String],
-        required: false,
-    },
-    Images: {
-        // Add exampleId field
-        type: [String],
-        required: false,
-    },
-    mainImage: {
-        type: String,
+    eventId: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
         required: true,
     },
     capacity: {
         type: Number,
     },
     bookedTickets: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+    },
+    ticketCount: {
         type: Number,
     },
-}, {
-    timestamps: true,
 });
-var Event = mongoose_1.default.model("Event", eventSchema);
+var Ticket = mongoose_1.default.model("Ticket", ticketSchema);
 // Export the User model
-exports.default = Event;
+exports.default = Ticket;
