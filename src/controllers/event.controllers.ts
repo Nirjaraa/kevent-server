@@ -4,11 +4,12 @@ import Event from "../models/event.model";
 import { isValidObjectId } from "../utils/isValidObjectId";
 import { Request, Response } from "express";
 import Ticket from "../models/ticket.model";
+import { createNotification } from "../controllers/notification.controllers";
 
 //CREATE EVENT
 const createEvent = async (req: Request, res: Response) => {
   try {
-    const { Title, Description, contactNumber, Venue, date, Price, Files, Images, mainImage } = req.body;
+    const { Title, Description, contactNumber, Venue, date, Price, Files, Images, mainImage, capacity } = req.body;
 
     if (!Title || !Description || !contactNumber || !Venue || !date || !Price || !mainImage) {
       return res.status(400).json({ error: ":Please add all the fields." });
@@ -40,14 +41,20 @@ const createEvent = async (req: Request, res: Response) => {
 const updateEvent = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
-    const { Title, Description, contactNumber, Venue, date, Price, Images, Files, mainImage } = req.body;
+    const { Title, Description, contactNumber, Venue, date, Price, Images, Files, mainImage, capacity } = req.body;
+    const tickets = await Ticket.find({ eventId });
 
-    const updatedEvent = await Event.findByIdAndUpdate(eventId, { Title, Description, contactNumber, Venue, date, Price, Images, Files, mainImage }, { new: true });
+    const updatedEvent = await Event.findByIdAndUpdate(eventId, { Title, Description, contactNumber, Venue, date, Price, Images, Files, mainImage, capacity }, { new: true });
 
     if (!updatedEvent) {
       return res.status(404).json({ error: "Event was not updated." });
     }
-    return res.status(200).json({ message: "Appointment updated successfully." });
+    const userIds = tickets.map((ticket) => ticket.userId);
+    userIds.forEach(async (userId) => {
+      await createNotification(userId.toString(), `Event "${Title}" updated .`, "update");
+    });
+    console.log(createNotification);
+    return res.status(200).json({ message: "Event updated successfully." });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
     return res.status(500).json({ error: errorMessage });
@@ -59,11 +66,14 @@ const deleteEvent = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
     const deletedEvent = await Event.findByIdAndDelete(eventId);
-
+    const tickets = await Ticket.find({ eventId });
     if (!deletedEvent) {
       return res.status(404).json({ error: "Event not found." });
     }
-
+    const userIds = tickets.map((ticket) => ticket.userId);
+    userIds.forEach(async (userId) => {
+      await createNotification(userId.toString(), `Event "${deletedEvent.Title}" deleted  .`, "deletion");
+    });
     return res.status(200).json({ message: "Event deleted successfully." });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
@@ -128,15 +138,4 @@ const searchEvents = async (req: Request, res: Response) => {
   }
 };
 
-//CALCULATE THE BOOKED TICKETS (IFF CAPACITY IS PROVIDED)
-const calculateBookedTickets = async (eventId: mongoose.Schema.Types.ObjectId) => {
-  const tickets = await Ticket.find({ eventId });
-
-  const bookedTickets = tickets.reduce((total: number, ticket) => {
-    const ticketCount = ticket.ticketCount || 0;
-    return total + Number(ticketCount);
-  }, 0);
-
-  return bookedTickets;
-};
-export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents, calculateBookedTickets };
+export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents };

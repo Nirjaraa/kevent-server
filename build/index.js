@@ -8,7 +8,7 @@ var dotenv_1 = __importDefault(require("dotenv"));
 var connectDB_1 = __importDefault(require("./db/connectDB"));
 var user_route_1 = __importDefault(require("./routes/user.route"));
 var event_route_1 = __importDefault(require("./routes/event.route"));
-// import ticketRoutes from "./routes/ticket.route";
+var ticket_route_1 = __importDefault(require("./routes/ticket.route"));
 var auth_routes_1 = __importDefault(require("./routes/auth.routes")); // Ensure this import is correct
 var passport_1 = __importDefault(require("passport"));
 var express_session_1 = __importDefault(require("express-session"));
@@ -27,7 +27,7 @@ app.use(passport_1.default.session());
 // Use routes
 app.use("/users", user_route_1.default);
 app.use("/events", event_route_1.default);
-// app.use("/tickets", ticketRoutes);
+app.use("/tickets", ticket_route_1.default);
 app.use(auth_routes_1.default); // Ensure that the auth routes are added here
 var port = process.env.PORT || 3000;
 app.get("/", function (req, res) {

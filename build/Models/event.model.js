@@ -68,6 +68,7 @@ var eventSchema = new mongoose_1.Schema({
     bookedTickets: {
         type: Number,
     },
+    creatorId: { type: mongoose_1.default.Schema.Types.ObjectId },
 }, {
     timestamps: true,
 });

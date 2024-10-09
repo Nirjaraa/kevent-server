@@ -1,12 +1,14 @@
 import { Router } from "express";
 const router: Router = Router();
-import { registerUsers, login, forgotPassword, changePassword, updateProfile } from "../controllers/user.controllers";
+import { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets } from "../controllers/user.controllers";
 import { isUser } from "../middlware/auth-Middleware";
 
 router.post("/register", registerUsers);
 router.post("/login", login);
-router.post("/forgot-password", forgotPassword);
-router.post("change-password", changePassword);
+router.post("/forgot-password", isUser, forgotPassword);
+router.post("change-password", isUser, changePassword);
 router.put("/update-profile/:id", isUser, updateProfile);
+router.get("/viewtickets", isUser, viewTickets);
+// router.get("/events/:eventId/attendees/export", isUser, exportAttendeesToCSV);
 
 export default router;

@@ -6,7 +6,9 @@ import { isValidObjectId } from "../utils/isValidObjectId";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
 import { sendEmail, sendOtp } from "../utils/sendEmail";
+import Ticket from "../models/ticket.model";
 const { v4: uuidv4 } = require("uuid");
+import { Parser as Json2csvParser } from "json2csv";
 
 //SIGNUP
 const registerUsers = async (req: Request, res: Response) => {
@@ -139,4 +141,18 @@ const updateProfile = async (req: Request, res: Response) => {
     return res.status(500).json({ error: errorMessage });
   }
 };
-export { registerUsers, login, forgotPassword, changePassword, updateProfile };
+const viewTickets = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const tickets = await Ticket.find({ userId });
+    if (!tickets || tickets.length === 0) {
+      return res.status(404).json({ error: "No tickets found" });
+    }
+    return res.status(200).json({ message: "Tickets found successfully", tickets });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+
+export { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets };

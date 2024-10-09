@@ -46,6 +46,8 @@ const eventSchema = new Schema<IEvent>(
     bookedTickets: {
       type: Number,
     },
+
+    creatorId: { type: mongoose.Schema.Types.ObjectId },
   },
   {
     timestamps: true,

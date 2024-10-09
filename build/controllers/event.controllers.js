@@ -39,18 +39,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateBookedTickets = exports.searchEvents = exports.viewAnEvent = exports.viewAllEvents = exports.deleteEvent = exports.updateEvent = exports.createEvent = void 0;
+exports.searchEvents = exports.viewAnEvent = exports.viewAllEvents = exports.deleteEvent = exports.updateEvent = exports.createEvent = void 0;
 var error_handler_1 = require("../utils/error-handler");
 var event_model_1 = __importDefault(require("../models/event.model"));
 var ticket_model_1 = __importDefault(require("../models/ticket.model"));
+var notification_controllers_1 = require("../controllers/notification.controllers");
 //CREATE EVENT
 var createEvent = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, Title, Description, contactNumber, Venue, date, Price, Files, Images, mainImage, existingEvent, creatingEvent, error_1, errorMessage;
+    var _a, Title, Description, contactNumber, Venue, date, Price, Files, Images, mainImage, capacity, existingEvent, creatingEvent, error_1, errorMessage;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
                 _b.trys.push([0, 3, , 4]);
-                _a = req.body, Title = _a.Title, Description = _a.Description, contactNumber = _a.contactNumber, Venue = _a.Venue, date = _a.date, Price = _a.Price, Files = _a.Files, Images = _a.Images, mainImage = _a.mainImage;
+                _a = req.body, Title = _a.Title, Description = _a.Description, contactNumber = _a.contactNumber, Venue = _a.Venue, date = _a.date, Price = _a.Price, Files = _a.Files, Images = _a.Images, mainImage = _a.mainImage, capacity = _a.capacity;
                 if (!Title || !Description || !contactNumber || !Venue || !date || !Price || !mainImage) {
                     return [2 /*return*/, res.status(400).json({ error: ":Please add all the fields." })];
                 }
@@ -85,49 +86,78 @@ var createEvent = function (req, res) { return __awaiter(void 0, void 0, void 0,
 exports.createEvent = createEvent;
 //UPDATE EVENT
 var updateEvent = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var eventId, _a, Title, Description, contactNumber, Venue, date, Price, Images, Files, mainImage, updatedEvent, error_2, errorMessage;
+    var eventId, _a, Title_1, Description, contactNumber, Venue, date, Price, Images, Files, mainImage, capacity, tickets, updatedEvent, userIds, error_2, errorMessage;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 2, , 3]);
+                _b.trys.push([0, 3, , 4]);
                 eventId = req.params.id;
-                _a = req.body, Title = _a.Title, Description = _a.Description, contactNumber = _a.contactNumber, Venue = _a.Venue, date = _a.date, Price = _a.Price, Images = _a.Images, Files = _a.Files, mainImage = _a.mainImage;
-                return [4 /*yield*/, event_model_1.default.findByIdAndUpdate(eventId, { Title: Title, Description: Description, contactNumber: contactNumber, Venue: Venue, date: date, Price: Price, Images: Images, Files: Files, mainImage: mainImage }, { new: true })];
+                _a = req.body, Title_1 = _a.Title, Description = _a.Description, contactNumber = _a.contactNumber, Venue = _a.Venue, date = _a.date, Price = _a.Price, Images = _a.Images, Files = _a.Files, mainImage = _a.mainImage, capacity = _a.capacity;
+                return [4 /*yield*/, ticket_model_1.default.find({ eventId: eventId })];
             case 1:
+                tickets = _b.sent();
+                return [4 /*yield*/, event_model_1.default.findByIdAndUpdate(eventId, { Title: Title_1, Description: Description, contactNumber: contactNumber, Venue: Venue, date: date, Price: Price, Images: Images, Files: Files, mainImage: mainImage, capacity: capacity }, { new: true })];
+            case 2:
                 updatedEvent = _b.sent();
                 if (!updatedEvent) {
                     return [2 /*return*/, res.status(404).json({ error: "Event was not updated." })];
                 }
-                return [2 /*return*/, res.status(200).json({ message: "Appointment updated successfully." })];
-            case 2:
+                userIds = tickets.map(function (ticket) { return ticket.userId; });
+                userIds.forEach(function (userId) { return __awaiter(void 0, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, (0, notification_controllers_1.createNotification)(userId.toString(), "Event \"".concat(Title_1, "\" updated ."), "update")];
+                            case 1:
+                                _a.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
+                console.log(notification_controllers_1.createNotification);
+                return [2 /*return*/, res.status(200).json({ message: "Event updated successfully." })];
+            case 3:
                 error_2 = _b.sent();
                 errorMessage = (0, error_handler_1.errorHandler)(error_2);
                 return [2 /*return*/, res.status(500).json({ error: errorMessage })];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.updateEvent = updateEvent;
 //DELETE EVENT
 var deleteEvent = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var eventId, deletedEvent, error_3, errorMessage;
+    var eventId, deletedEvent_1, tickets, userIds, error_3, errorMessage;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _a.trys.push([0, 3, , 4]);
                 eventId = req.params.id;
                 return [4 /*yield*/, event_model_1.default.findByIdAndDelete(eventId)];
             case 1:
-                deletedEvent = _a.sent();
-                if (!deletedEvent) {
+                deletedEvent_1 = _a.sent();
+                return [4 /*yield*/, ticket_model_1.default.find({ eventId: eventId })];
+            case 2:
+                tickets = _a.sent();
+                if (!deletedEvent_1) {
                     return [2 /*return*/, res.status(404).json({ error: "Event not found." })];
                 }
+                userIds = tickets.map(function (ticket) { return ticket.userId; });
+                userIds.forEach(function (userId) { return __awaiter(void 0, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, (0, notification_controllers_1.createNotification)(userId.toString(), "Event \"".concat(deletedEvent_1.Title, "\" deleted  ."), "deletion")];
+                            case 1:
+                                _a.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
                 return [2 /*return*/, res.status(200).json({ message: "Event deleted successfully." })];
-            case 2:
+            case 3:
                 error_3 = _a.sent();
                 errorMessage = (0, error_handler_1.errorHandler)(error_3);
                 return [2 /*return*/, res.status(500).json({ error: errorMessage })];
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
@@ -208,20 +238,3 @@ var searchEvents = function (req, res) { return __awaiter(void 0, void 0, void 0
     });
 }); };
 exports.searchEvents = searchEvents;
-//CALCULATE THE BOOKED TICKETS (IFF CAPACITY IS PROVIDED)
-var calculateBookedTickets = function (eventId) { return __awaiter(void 0, void 0, void 0, function () {
-    var tickets, bookedTickets;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, ticket_model_1.default.find({ eventId: eventId })];
-            case 1:
-                tickets = _a.sent();
-                bookedTickets = tickets.reduce(function (total, ticket) {
-                    var ticketCount = ticket.ticketCount || 0;
-                    return total + Number(ticketCount);
-                }, 0);
-                return [2 /*return*/, bookedTickets];
-        }
-    });
-}); };
-exports.calculateBookedTickets = calculateBookedTickets;

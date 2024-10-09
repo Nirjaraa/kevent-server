@@ -13,9 +13,7 @@ const ticketSchema = new Schema<ITicket>({
   capacity: {
     type: Number,
   },
-  bookedTickets: {
-    type: mongoose.Schema.Types.ObjectId,
-  },
+
   ticketCount: {
     type: Number,
   },

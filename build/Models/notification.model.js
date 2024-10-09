@@ -24,22 +24,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importStar(require("mongoose"));
-var ticketSchema = new mongoose_1.Schema({
-    userId: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        required: true,
-    },
-    eventId: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        required: true,
-    },
-    capacity: {
-        type: Number,
-    },
-    ticketCount: {
-        type: Number,
-    },
+var NotificationSchema = new mongoose_1.Schema({
+    userId: { type: mongoose_1.default.Types.ObjectId, ref: "User", required: true },
+    message: { type: String, required: true },
+    type: { type: String, required: true },
+    isRead: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
 });
-var Ticket = mongoose_1.default.model("Ticket", ticketSchema);
-// Export the User model
-exports.default = Ticket;
+var Notification = mongoose_1.default.model("Notification", NotificationSchema);
+exports.default = Notification;

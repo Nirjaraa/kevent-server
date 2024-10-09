@@ -39,12 +39,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateProfile = exports.changePassword = exports.forgotPassword = exports.login = exports.registerUsers = void 0;
+exports.viewTickets = exports.updateProfile = exports.changePassword = exports.forgotPassword = exports.login = exports.registerUsers = void 0;
 var error_handler_1 = require("../utils/error-handler");
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var User_model_1 = __importDefault(require("../models/User.model"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var sendEmail_1 = require("../utils/sendEmail");
+var ticket_model_1 = __importDefault(require("../models/ticket.model"));
 var uuidv4 = require("uuid").v4;
 //SIGNUP
 var registerUsers = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -228,3 +229,27 @@ var updateProfile = function (req, res) { return __awaiter(void 0, void 0, void 
     });
 }); };
 exports.updateProfile = updateProfile;
+var viewTickets = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var userId, tickets, error_6, errorMessage;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                return [4 /*yield*/, ticket_model_1.default.find({ userId: userId })];
+            case 1:
+                tickets = _b.sent();
+                if (!tickets || tickets.length === 0) {
+                    return [2 /*return*/, res.status(404).json({ error: "No tickets found" })];
+                }
+                return [2 /*return*/, res.status(200).json({ message: "Tickets found successfully", tickets: tickets })];
+            case 2:
+                error_6 = _b.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_6);
+                return [2 /*return*/, res.status(500).json({ error: errorMessage })];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.viewTickets = viewTickets;

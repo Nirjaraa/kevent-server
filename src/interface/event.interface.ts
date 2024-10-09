@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 export interface IEvent extends Document {
   Title: String;
   Description: String;
@@ -10,4 +11,5 @@ export interface IEvent extends Document {
   mainImage?: String;
   capacity?: Number;
   bookedTickets?: Number;
+  creatorId: mongoose.Schema.Types.ObjectId;
 }
