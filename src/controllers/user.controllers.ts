@@ -194,4 +194,28 @@ const viewTickets = async (req: Request, res: Response) => {
   }
 };
 
-export { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets, verifyEmail };
+//RESEND OTP
+const resendOtp = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const otp = uuidv4().slice(0, 6);
+    user.resetPasswordOtp = otp;
+    user.resetPasswordOtpExpires = new Date(Date.now() + 300000);
+    await user.save();
+
+    const emailText = sendOtp(user.firstName, otp);
+    const subject = "New OTP for Verification";
+    await sendEmail(user.email, subject, emailText);
+
+    return res.status(200).json({ message: "New OTP sent to your email" });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+export { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets, verifyEmail, resendOtp };
