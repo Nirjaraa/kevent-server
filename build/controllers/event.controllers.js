@@ -86,11 +86,11 @@ var createEvent = function (req, res) { return __awaiter(void 0, void 0, void 0,
 exports.createEvent = createEvent;
 //UPDATE EVENT
 var updateEvent = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var eventId, _a, Title_1, Description, contactNumber, Venue, date, Price, Images, Files, mainImage, capacity, tickets, updatedEvent, userIds, error_2, errorMessage;
+    var eventId, _a, Title_1, Description, contactNumber, Venue, date, Price, Images, Files, mainImage, capacity, tickets, updatedEvent, userIds, notificationPromises, notifications, error_2, errorMessage;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
+                _b.trys.push([0, 4, , 5]);
                 eventId = req.params.id;
                 _a = req.body, Title_1 = _a.Title, Description = _a.Description, contactNumber = _a.contactNumber, Venue = _a.Venue, date = _a.date, Price = _a.Price, Images = _a.Images, Files = _a.Files, mainImage = _a.mainImage, capacity = _a.capacity;
                 return [4 /*yield*/, ticket_model_1.default.find({ eventId: eventId })];
@@ -103,23 +103,16 @@ var updateEvent = function (req, res) { return __awaiter(void 0, void 0, void 0,
                     return [2 /*return*/, res.status(404).json({ error: "Event was not updated." })];
                 }
                 userIds = tickets.map(function (ticket) { return ticket.userId; });
-                userIds.forEach(function (userId) { return __awaiter(void 0, void 0, void 0, function () {
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, (0, notification_controllers_1.createNotification)(userId.toString(), "Event \"".concat(Title_1, "\" updated ."), "update")];
-                            case 1:
-                                _a.sent();
-                                return [2 /*return*/];
-                        }
-                    });
-                }); });
-                console.log(notification_controllers_1.createNotification);
-                return [2 /*return*/, res.status(200).json({ message: "Event updated successfully." })];
+                notificationPromises = userIds.map(function (userId) { return (0, notification_controllers_1.createNotification)(userId.toString(), "Event \"".concat(Title_1, "\" updated successfully."), "update"); });
+                return [4 /*yield*/, Promise.all(notificationPromises)];
             case 3:
+                notifications = _b.sent();
+                return [2 /*return*/, res.status(200).json({ message: "Event updated successfully." })];
+            case 4:
                 error_2 = _b.sent();
                 errorMessage = (0, error_handler_1.errorHandler)(error_2);
                 return [2 /*return*/, res.status(500).json({ error: errorMessage })];
-            case 4: return [2 /*return*/];
+            case 5: return [2 /*return*/];
         }
     });
 }); };

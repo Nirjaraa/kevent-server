@@ -36,4 +36,11 @@ const sendOtp = (firstName: string, otp: string) => {
     Your OTP code is ${otp}`;
 };
 
-export { sendEmail, sendOtp };
+const verifyEmails = (firstName: String, verificationCode: string) => {
+  const text = `Dear ${firstName},
+  Your verification code is: ${verificationCode}
+  The Kevent Team
+  [Do Not Reply]`;
+  return text;
+};
+export { sendEmail, sendOtp, verifyEmails };

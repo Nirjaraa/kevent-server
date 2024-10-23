@@ -50,10 +50,10 @@ const updateEvent = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Event was not updated." });
     }
     const userIds = tickets.map((ticket) => ticket.userId);
-    userIds.forEach(async (userId) => {
-      await createNotification(userId.toString(), `Event "${Title}" updated .`, "update");
-    });
-    console.log(createNotification);
+    const notificationPromises = userIds.map((userId) => createNotification(userId.toString(), `Event "${Title}" updated successfully.`, "update"));
+
+    const notifications = await Promise.all(notificationPromises);
+
     return res.status(200).json({ message: "Event updated successfully." });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);

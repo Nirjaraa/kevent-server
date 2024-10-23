@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendOtp = exports.sendEmail = void 0;
+exports.verifyEmails = exports.sendOtp = exports.sendEmail = void 0;
 var nodemailer_1 = __importDefault(require("nodemailer"));
 var dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -84,3 +84,8 @@ var sendOtp = function (firstName, otp) {
     return "Dear ".concat(firstName, ",\n    Your OTP code is ").concat(otp);
 };
 exports.sendOtp = sendOtp;
+var verifyEmails = function (firstName, verificationCode) {
+    var text = "Dear ".concat(firstName, ",\n  Your verification code is: ").concat(verificationCode, "\n  The Kevent Team\n  [Do Not Reply]");
+    return text;
+};
+exports.verifyEmails = verifyEmails;

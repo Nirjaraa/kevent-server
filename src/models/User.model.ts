@@ -33,7 +33,6 @@ const UserSchema = new Schema<IUser>(
       required: true,
     },
     exampleId: {
-      // Add exampleId field
       type: String,
       required: false,
     },
@@ -43,6 +42,13 @@ const UserSchema = new Schema<IUser>(
 
     resetPasswordOtpExpires: {
       type: Date,
+    },
+
+    emailVerified: {
+      type: Boolean,
+    },
+    verificationCode: {
+      type: Number,
     },
   },
   {

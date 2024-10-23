@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteNotification = exports.markNotificationAsRead = exports.createNotification = void 0;
+exports.createNotification = void 0;
 var notification_model_1 = __importDefault(require("../models/notification.model"));
 var createNotification = function (userId, message, type) { return __awaiter(void 0, void 0, void 0, function () {
     var error_1;
@@ -60,43 +60,20 @@ var createNotification = function (userId, message, type) { return __awaiter(voi
     });
 }); };
 exports.createNotification = createNotification;
-// Mark a notification as read
-var markNotificationAsRead = function (notificationId) { return __awaiter(void 0, void 0, void 0, function () {
+// Get all notifications for a user
+var getNotificationsByUser = function (userId) { return __awaiter(void 0, void 0, void 0, function () {
     var error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, notification_model_1.default.findByIdAndUpdate(notificationId, { isRead: true }, { new: true })];
-            case 1:
-                _a.sent();
-                return [3 /*break*/, 3];
+                return [4 /*yield*/, notification_model_1.default.find({ userId: userId })];
+            case 1: return [2 /*return*/, _a.sent()];
             case 2:
                 error_2 = _a.sent();
-                console.error("Error marking notification as read:", error_2);
-                throw new Error("Failed to mark notification as read");
+                console.error("Error fetching notifications:", error_2);
+                throw new Error("Failed to fetch notifications");
             case 3: return [2 /*return*/];
         }
     });
 }); };
-exports.markNotificationAsRead = markNotificationAsRead;
-// delete notifications
-var deleteNotification = function (notificationId) { return __awaiter(void 0, void 0, void 0, function () {
-    var error_3;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, notification_model_1.default.findByIdAndDelete(notificationId)];
-            case 1:
-                _a.sent();
-                return [3 /*break*/, 3];
-            case 2:
-                error_3 = _a.sent();
-                console.error("Error deleting notification:", error_3);
-                throw new Error("Failed to delete notification");
-            case 3: return [2 /*return*/];
-        }
-    });
-}); };
-exports.deleteNotification = deleteNotification;

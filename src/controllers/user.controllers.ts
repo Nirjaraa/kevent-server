@@ -2,10 +2,9 @@ import mongoose from "mongoose";
 import { errorHandler } from "../utils/error-handler";
 import bcrypt from "bcryptjs";
 import User from "../models/User.model";
-import { isValidObjectId } from "../utils/isValidObjectId";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response } from "express";
-import { sendEmail, sendOtp } from "../utils/sendEmail";
+import { sendEmail, sendOtp, verifyEmails } from "../utils/sendEmail";
 import Ticket from "../models/ticket.model";
 const { v4: uuidv4 } = require("uuid");
 import { Parser as Json2csvParser } from "json2csv";
@@ -25,6 +24,7 @@ const registerUsers = async (req: Request, res: Response) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    const verificationCode = generateVerificationCode();
 
     const newUser = await User.create({
       firstName: firstName.trim(),
@@ -33,10 +33,43 @@ const registerUsers = async (req: Request, res: Response) => {
       password: hashedPassword,
       batch: batch,
       department: department,
+      verificationCode,
+      emailVerified: false,
     });
-    const userWithoutPassword = await User.findById(newUser._id).select("-password");
+    const emailText = verifyEmails(newUser.firstName, verificationCode);
+    const subject = "Email Verification";
 
-    res.status(201).json({ message: "User registered successfully", user: userWithoutPassword });
+    await sendEmail(email, subject, emailText);
+
+    const userWithoutPassword = await User.findById(newUser._id).select("-password -createdAt -updatedAt verificationCode emailVerified");
+
+    res.status(201).json({ message: "OTP has been sent to your email verify it to register.", user: userWithoutPassword });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+
+const generateVerificationCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+//VERIFY EMAIL
+const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const { email, verificationCode } = req.body;
+
+    const user = await User.findOne({ email, verificationCode });
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid verification code." });
+    }
+
+    user.emailVerified = true;
+
+    await user.save();
+
+    return res.status(200).json({ message: "Email verified successfully." });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
     return res.status(500).json({ error: errorMessage });
@@ -55,6 +88,14 @@ const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({ error: "Email not verified. Please verify your email before logging in." });
+    }
     if (user && (await bcrypt.compare(password, user.password))) {
       return res.status(201).json({ message: "Login Successful", token: generateToken(user.id), user });
     }
@@ -77,16 +118,15 @@ const forgotPassword = async (req: Request, res: Response) => {
       return res.status(400).send("User not found");
     }
 
-    const otp = uuidv4().slice(0, 6); // Generate a simple 6-character OTP
+    const otp = uuidv4().slice(0, 6);
     user.resetPasswordOtp = otp;
-    user.resetPasswordOtpExpires = new Date(Date.now() + 300000); // OTP expires in 5 minutes
+    user.resetPasswordOtpExpires = new Date(Date.now() + 300000);
     await user.save();
-    const emailText = sendOtp(user.firstName, otp); // Create the email content
+    const emailText = sendOtp(user.firstName, otp);
     const subject = "Verification code";
 
-    await sendEmail(user.email, subject, emailText); // Send the email
-    console.log(email);
-    console.log(otp);
+    await sendEmail(user.email, subject, emailText);
+
     return res.status(200).json({ message: "OTP sent to email" });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
@@ -130,7 +170,6 @@ const updateProfile = async (req: Request, res: Response) => {
       { new: true, runValidators: true } // Return updated document and validate
     ).select("-password -createdAt -resetPasswordOtp -resetPasswordOtpExpires -updatedAt");
 
-    // Handle case where the user is not found
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -155,4 +194,4 @@ const viewTickets = async (req: Request, res: Response) => {
   }
 };
 
-export { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets };
+export { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets, verifyEmail };

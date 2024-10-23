@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.viewTickets = exports.updateProfile = exports.changePassword = exports.forgotPassword = exports.login = exports.registerUsers = void 0;
+exports.resendOtp = exports.verifyEmail = exports.viewTickets = exports.updateProfile = exports.changePassword = exports.forgotPassword = exports.login = exports.registerUsers = void 0;
 var error_handler_1 = require("../utils/error-handler");
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var User_model_1 = __importDefault(require("../models/User.model"));
@@ -49,11 +49,11 @@ var ticket_model_1 = __importDefault(require("../models/ticket.model"));
 var uuidv4 = require("uuid").v4;
 //SIGNUP
 var registerUsers = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, firstName, lastName, email, password, batch, department, avatarURL, userExists, salt, hashedPassword, newUser, userWithoutPassword, error_1, errorMessage;
+    var _a, firstName, lastName, email, password, batch, department, avatarURL, userExists, salt, hashedPassword, verificationCode, newUser, emailText, subject, userWithoutPassword, error_1, errorMessage;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 6, , 7]);
+                _b.trys.push([0, 7, , 8]);
                 _a = req.body, firstName = _a.firstName, lastName = _a.lastName, email = _a.email, password = _a.password, batch = _a.batch, department = _a.department, avatarURL = _a.avatarURL;
                 if (!firstName || !lastName || !email || !password || !batch || !department) {
                     return [2 /*return*/, res.status(400).json({ error: ":Please add all the fields." })];
@@ -70,6 +70,7 @@ var registerUsers = function (req, res) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, bcryptjs_1.default.hash(password, salt)];
             case 3:
                 hashedPassword = _b.sent();
+                verificationCode = generateVerificationCode();
                 return [4 /*yield*/, User_model_1.default.create({
                         firstName: firstName.trim(),
                         lastName: lastName.trim(),
@@ -77,23 +78,61 @@ var registerUsers = function (req, res) { return __awaiter(void 0, void 0, void 
                         password: hashedPassword,
                         batch: batch,
                         department: department,
+                        verificationCode: verificationCode,
+                        emailVerified: false,
                     })];
             case 4:
                 newUser = _b.sent();
-                return [4 /*yield*/, User_model_1.default.findById(newUser._id).select("-password")];
+                emailText = (0, sendEmail_1.verifyEmails)(newUser.firstName, verificationCode);
+                subject = "Email Verification";
+                return [4 /*yield*/, (0, sendEmail_1.sendEmail)(email, subject, emailText)];
             case 5:
-                userWithoutPassword = _b.sent();
-                res.status(201).json({ message: "User registered successfully", user: userWithoutPassword });
-                return [3 /*break*/, 7];
+                _b.sent();
+                return [4 /*yield*/, User_model_1.default.findById(newUser._id).select("-password -createdAt -updatedAt verificationCode emailVerified")];
             case 6:
+                userWithoutPassword = _b.sent();
+                res.status(201).json({ message: "OTP has been sent to your email verify it to register.", user: userWithoutPassword });
+                return [3 /*break*/, 8];
+            case 7:
                 error_1 = _b.sent();
                 errorMessage = (0, error_handler_1.errorHandler)(error_1);
                 return [2 /*return*/, res.status(500).json({ error: errorMessage })];
-            case 7: return [2 /*return*/];
+            case 8: return [2 /*return*/];
         }
     });
 }); };
 exports.registerUsers = registerUsers;
+var generateVerificationCode = function () {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+};
+//VERIFY EMAIL
+var verifyEmail = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, email, verificationCode, user, error_2, errorMessage;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 3, , 4]);
+                _a = req.body, email = _a.email, verificationCode = _a.verificationCode;
+                return [4 /*yield*/, User_model_1.default.findOne({ email: email, verificationCode: verificationCode })];
+            case 1:
+                user = _b.sent();
+                if (!user) {
+                    return [2 /*return*/, res.status(400).json({ error: "Invalid verification code." })];
+                }
+                user.emailVerified = true;
+                return [4 /*yield*/, user.save()];
+            case 2:
+                _b.sent();
+                return [2 /*return*/, res.status(200).json({ message: "Email verified successfully." })];
+            case 3:
+                error_2 = _b.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_2);
+                return [2 /*return*/, res.status(500).json({ error: errorMessage })];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); };
+exports.verifyEmail = verifyEmail;
 //LOGIN
 var generateToken = function (id) {
     return jsonwebtoken_1.default.sign({ id: id }, process.env.JWT_SECRET, {
@@ -101,7 +140,7 @@ var generateToken = function (id) {
     });
 };
 var login = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, user, _b, error_2, errorMessage;
+    var _a, email, password, user, _b, error_3, errorMessage;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
@@ -110,6 +149,12 @@ var login = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
                 return [4 /*yield*/, User_model_1.default.findOne({ email: email })];
             case 1:
                 user = _c.sent();
+                if (!user) {
+                    return [2 /*return*/, res.status(404).json({ error: "User not found" })];
+                }
+                if (!user.emailVerified) {
+                    return [2 /*return*/, res.status(403).json({ error: "Email not verified. Please verify your email before logging in." })];
+                }
                 _b = user;
                 if (!_b) return [3 /*break*/, 3];
                 return [4 /*yield*/, bcryptjs_1.default.compare(password, user.password)];
@@ -122,8 +167,8 @@ var login = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
                 }
                 return [2 /*return*/, res.status(404).json({ error: "Invalid Email and Password" })];
             case 4:
-                error_2 = _c.sent();
-                errorMessage = (0, error_handler_1.errorHandler)(error_2);
+                error_3 = _c.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_3);
                 return [2 /*return*/, res.status(500).json({ error: errorMessage })];
             case 5: return [2 /*return*/];
         }
@@ -132,7 +177,7 @@ var login = function (req, res) { return __awaiter(void 0, void 0, void 0, funct
 exports.login = login;
 //FORGOT-PASSWORD
 var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var email, user, otp, emailText, subject, error_3, errorMessage;
+    var email, user, otp, emailText, subject, error_4, errorMessage;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -146,7 +191,7 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
                 }
                 otp = uuidv4().slice(0, 6);
                 user.resetPasswordOtp = otp;
-                user.resetPasswordOtpExpires = new Date(Date.now() + 300000); // OTP expires in 5 minutes
+                user.resetPasswordOtpExpires = new Date(Date.now() + 300000);
                 return [4 /*yield*/, user.save()];
             case 2:
                 _a.sent();
@@ -154,13 +199,11 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
                 subject = "Verification code";
                 return [4 /*yield*/, (0, sendEmail_1.sendEmail)(user.email, subject, emailText)];
             case 3:
-                _a.sent(); // Send the email
-                console.log(email);
-                console.log(otp);
+                _a.sent();
                 return [2 /*return*/, res.status(200).json({ message: "OTP sent to email" })];
             case 4:
-                error_3 = _a.sent();
-                errorMessage = (0, error_handler_1.errorHandler)(error_3);
+                error_4 = _a.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_4);
                 return [2 /*return*/, res.status(500).json({ error: errorMessage })];
             case 5: return [2 /*return*/];
         }
@@ -169,7 +212,7 @@ var forgotPassword = function (req, res) { return __awaiter(void 0, void 0, void
 exports.forgotPassword = forgotPassword;
 //CHANGE PASSWORD
 var changePassword = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, user, salt, hashedPassword, error_4, errorMessage;
+    var _a, email, password, user, salt, hashedPassword, error_5, errorMessage;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -194,8 +237,8 @@ var changePassword = function (req, res) { return __awaiter(void 0, void 0, void
                 res.status(200).send("Password changed successfully");
                 return [3 /*break*/, 6];
             case 5:
-                error_4 = _b.sent();
-                errorMessage = (0, error_handler_1.errorHandler)(error_4);
+                error_5 = _b.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_5);
                 return [2 /*return*/, res.status(500).json({ error: errorMessage })];
             case 6: return [2 /*return*/];
         }
@@ -204,7 +247,7 @@ var changePassword = function (req, res) { return __awaiter(void 0, void 0, void
 exports.changePassword = changePassword;
 //UPDATE PROFILE
 var updateProfile = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var userId, _a, firstName, lastName, email, password, batch, department, avatarURL, user, error_5, errorMessage;
+    var userId, _a, firstName, lastName, email, password, batch, department, avatarURL, user, error_6, errorMessage;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -215,14 +258,13 @@ var updateProfile = function (req, res) { return __awaiter(void 0, void 0, void 
                     ).select("-password -createdAt -resetPasswordOtp -resetPasswordOtpExpires -updatedAt")];
             case 1:
                 user = _b.sent();
-                // Handle case where the user is not found
                 if (!user) {
                     return [2 /*return*/, res.status(404).json({ message: "User not found" })];
                 }
                 return [2 /*return*/, res.status(200).json({ message: "Your profile has been updated", user: user })];
             case 2:
-                error_5 = _b.sent();
-                errorMessage = (0, error_handler_1.errorHandler)(error_5);
+                error_6 = _b.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_6);
                 return [2 /*return*/, res.status(500).json({ error: errorMessage })];
             case 3: return [2 /*return*/];
         }
@@ -230,7 +272,7 @@ var updateProfile = function (req, res) { return __awaiter(void 0, void 0, void 
 }); };
 exports.updateProfile = updateProfile;
 var viewTickets = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var userId, tickets, error_6, errorMessage;
+    var userId, tickets, error_7, errorMessage;
     var _a;
     return __generator(this, function (_b) {
         switch (_b.label) {
@@ -245,11 +287,46 @@ var viewTickets = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 }
                 return [2 /*return*/, res.status(200).json({ message: "Tickets found successfully", tickets: tickets })];
             case 2:
-                error_6 = _b.sent();
-                errorMessage = (0, error_handler_1.errorHandler)(error_6);
+                error_7 = _b.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_7);
                 return [2 /*return*/, res.status(500).json({ error: errorMessage })];
             case 3: return [2 /*return*/];
         }
     });
 }); };
 exports.viewTickets = viewTickets;
+//RESEND OTP
+var resendOtp = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var email, user, otp, emailText, subject, error_8, errorMessage;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 4, , 5]);
+                email = req.body.email;
+                return [4 /*yield*/, User_model_1.default.findOne({ email: email })];
+            case 1:
+                user = _a.sent();
+                if (!user) {
+                    return [2 /*return*/, res.status(404).json({ error: "User not found" })];
+                }
+                otp = uuidv4().slice(0, 6);
+                user.resetPasswordOtp = otp;
+                user.resetPasswordOtpExpires = new Date(Date.now() + 300000);
+                return [4 /*yield*/, user.save()];
+            case 2:
+                _a.sent();
+                emailText = (0, sendEmail_1.sendOtp)(user.firstName, otp);
+                subject = "New OTP for Verification";
+                return [4 /*yield*/, (0, sendEmail_1.sendEmail)(user.email, subject, emailText)];
+            case 3:
+                _a.sent();
+                return [2 /*return*/, res.status(200).json({ message: "New OTP sent to your email" })];
+            case 4:
+                error_8 = _a.sent();
+                errorMessage = (0, error_handler_1.errorHandler)(error_8);
+                return [2 /*return*/, res.status(500).json({ error: errorMessage })];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); };
+exports.resendOtp = resendOtp;

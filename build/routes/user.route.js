@@ -6,6 +6,7 @@ var user_controllers_1 = require("../controllers/user.controllers");
 var auth_Middleware_1 = require("../middlware/auth-Middleware");
 router.post("/register", user_controllers_1.registerUsers);
 router.post("/login", user_controllers_1.login);
+router.post("/verifyemail", user_controllers_1.verifyEmail);
 router.post("/forgot-password", auth_Middleware_1.isUser, user_controllers_1.forgotPassword);
 router.post("change-password", auth_Middleware_1.isUser, user_controllers_1.changePassword);
 router.put("/update-profile/:id", auth_Middleware_1.isUser, user_controllers_1.updateProfile);

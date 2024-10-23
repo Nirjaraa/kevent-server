@@ -55,7 +55,6 @@ var UserSchema = new mongoose_1.Schema({
         required: true,
     },
     exampleId: {
-        // Add exampleId field
         type: String,
         required: false,
     },
@@ -64,6 +63,12 @@ var UserSchema = new mongoose_1.Schema({
     },
     resetPasswordOtpExpires: {
         type: Date,
+    },
+    emailVerified: {
+        type: Boolean,
+    },
+    verificationCode: {
+        type: Number,
     },
 }, {
     timestamps: true,

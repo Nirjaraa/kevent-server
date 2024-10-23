@@ -12,4 +12,6 @@ export interface IUser extends Document {
   exampleId?: string;
   resetPasswordOtp?: string;
   resetPasswordOtpExpires?: Date;
+  emailVerified: Boolean;
+  verificationCode?: Number;
 }
