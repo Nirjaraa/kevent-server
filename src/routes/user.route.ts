@@ -3,7 +3,7 @@ const router: Router = Router();
 import { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets, verifyEmail, resendOtp } from "../controllers/user.controllers";
 import { isUser } from "../middlware/auth-Middleware";
 
-router.post("/users/register", registerUsers);
+router.post("/register", registerUsers);
 router.post("/login", login);
 router.post("/verifyemail", verifyEmail);
 router.post("/resendOTP", resendOtp);
