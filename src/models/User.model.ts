@@ -24,7 +24,11 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: true,
     },
-   
+    year: {
+      type: String,
+      required: true,
+    },
+
     avatarURL: {
       type: String,
       required: false,

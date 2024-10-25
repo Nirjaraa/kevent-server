@@ -12,8 +12,8 @@ import { Parser as Json2csvParser } from "json2csv";
 //SIGNUP
 const registerUsers = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, email, password, batch, department, avatarURL } = req.body;
-    if (!firstName || !lastName || !email || !password || !batch || !department) {
+    const { firstName, lastName, email, password, batch, department, year, avatarURL } = req.body;
+    if (!firstName || !lastName || !email || !password || !batch || !department || !!year) {
       return res.status(400).json({ error: ":Please add all the fields." });
     }
 
@@ -33,6 +33,7 @@ const registerUsers = async (req: Request, res: Response) => {
       password: hashedPassword,
       batch: batch,
       department: department,
+      year: year,
       verificationCode,
       emailVerified: false,
     });
