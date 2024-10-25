@@ -9,9 +9,9 @@ import { createNotification } from "../controllers/notification.controllers";
 //CREATE EVENT
 const createEvent = async (req: Request, res: Response) => {
   try {
-    const { Title, Description, contactNumber, Venue, date, Price, Files, Images, mainImage, capacity } = req.body;
+    const { Title, Description, contactNumber, Venue, date, Price, Files, Images, mainImage, time, capacity } = req.body;
 
-    if (!Title || !Description || !contactNumber || !Venue || !date || !Price || !mainImage) {
+    if (!Title || !Description || !contactNumber || !Venue || !date || !Price || !mainImage || !time) {
       return res.status(400).json({ error: ":Please add all the fields." });
     }
     const existingEvent = await Event.findOne({ Title, Date });
@@ -25,6 +25,7 @@ const createEvent = async (req: Request, res: Response) => {
       contactNumber,
       Venue,
       date,
+      time,
       Price,
       Files,
       Images,

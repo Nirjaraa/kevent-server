@@ -9,6 +9,7 @@ export interface IEvent extends Document {
   Files?: String[];
   Images?: String[];
   mainImage?: String;
+  time?: Number;
   capacity?: Number;
   bookedTickets?: Number;
   creatorId: mongoose.Schema.Types.ObjectId;

@@ -40,6 +40,10 @@ const eventSchema = new Schema<IEvent>(
       type: String,
       required: true,
     },
+    time: {
+      type: Number,
+      required: true,
+    },
     capacity: {
       type: Number,
     },
