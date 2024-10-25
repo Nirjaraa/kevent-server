@@ -163,11 +163,11 @@ const updateProfile = async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;
 
-    const { firstName, lastName, email, password, batch, department, avatarURL } = req.body;
+    const { firstName, lastName, email, password, batch, department, year, avatarURL } = req.body;
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { firstName, lastName, email, password, batch, department, avatarURL },
+      { firstName, lastName, email, password, batch, department, year, avatarURL },
       { new: true, runValidators: true } // Return updated document and validate
     ).select("-password -createdAt -resetPasswordOtp -resetPasswordOtpExpires -updatedAt");
 

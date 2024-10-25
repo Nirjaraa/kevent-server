@@ -18,13 +18,9 @@ const UserSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: false, //not required for oauth
+      //not required for oauth
     },
     department: {
-      type: String,
-      required: true,
-    },
-    year: {
       type: String,
       required: true,
     },
@@ -63,5 +59,4 @@ const UserSchema = new Schema<IUser>(
 
 const User = mongoose.model<IUser>("User", UserSchema);
 
-// Export the User model
 export default User;

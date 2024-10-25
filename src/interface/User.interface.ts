@@ -8,7 +8,6 @@ export interface IUser extends Document {
   password: string;
   batch: number;
   department: string;
-  year?: string;
   avatarURL?: string;
   exampleId?: string;
   resetPasswordOtp?: string;
