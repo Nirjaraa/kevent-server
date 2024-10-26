@@ -3,6 +3,7 @@ import { errorHandler } from "../utils/error-handler";
 import bcrypt from "bcryptjs";
 import User from "../models/User.model";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { isValidObjectId } from "mongoose";
 import { Request, Response } from "express";
 import { sendEmail, sendOtp, verifyEmails } from "../utils/sendEmail";
 import Ticket from "../models/ticket.model";
@@ -158,18 +159,39 @@ const changePassword = async (req: Request, res: Response) => {
   }
 };
 
+//GET PROFILE
+const getProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user;
+
+    if (!isValidObjectId(userId)) {
+      return res.status(404).json({ error: "Invalid Id" });
+    }
+
+    const user = await User.findById(userId).select("-password -createdAt -resetPasswordOtp -resetPasswordOtpExpires -updatedAt -emailVerified -verificationCode");
+    if (!user) {
+      return res.status(404).json({ error: "User Not Found" });
+    }
+
+    return res.status(200).json({ message: "User Retrived Sucessfully", user });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+
 //UPDATE PROFILE
 const updateProfile = async (req: Request, res: Response) => {
   try {
-    const userId = req.params.id;
+    const userId = req.user;
 
-    const { firstName, lastName, email, password, batch, department, year, avatarURL } = req.body;
+    const { firstName, lastName, password, batch, department, year, avatarURL } = req.body;
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { firstName, lastName, email, password, batch, department, year, avatarURL },
+      { firstName, lastName, password, batch, department, year, avatarURL },
       { new: true, runValidators: true } // Return updated document and validate
-    ).select("-password -createdAt -resetPasswordOtp -resetPasswordOtpExpires -updatedAt");
+    ).select(" -createdAt -resetPasswordOtp -resetPasswordOtpExpires -updatedAt -emailVerified -verificationCode");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -181,6 +203,7 @@ const updateProfile = async (req: Request, res: Response) => {
     return res.status(500).json({ error: errorMessage });
   }
 };
+
 const viewTickets = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
@@ -219,4 +242,4 @@ const resendOtp = async (req: Request, res: Response) => {
     return res.status(500).json({ error: errorMessage });
   }
 };
-export { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets, verifyEmail, resendOtp };
+export { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets, verifyEmail, resendOtp, getProfile };

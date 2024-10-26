@@ -33,6 +33,10 @@ const UserSchema = new Schema<IUser>(
       type: Number,
       required: true,
     },
+    year: {
+      type: Number,
+      required: true,
+    },
     exampleId: {
       type: String,
       required: false,
