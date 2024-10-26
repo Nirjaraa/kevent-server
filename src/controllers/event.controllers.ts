@@ -6,12 +6,13 @@ import { Request, Response } from "express";
 import Ticket from "../models/ticket.model";
 import { createNotification } from "../controllers/notification.controllers";
 
+
 //CREATE EVENT
 const createEvent = async (req: Request, res: Response) => {
   try {
-    const { Title, Description, contactNumber, Venue, date, Price, Files, Images, mainImage, capacity } = req.body;
+    const { Title, Description, contactNumber, Venue, date, Price } = req.body;
 
-    if (!Title || !Description || !contactNumber || !Venue || !date || !Price || !mainImage) {
+    if (!Title || !Description || !contactNumber || !Venue || !date || !Price) {
       return res.status(400).json({ error: ":Please add all the fields." });
     }
     const existingEvent = await Event.findOne({ Title, Date });
@@ -19,6 +20,7 @@ const createEvent = async (req: Request, res: Response) => {
     if (existingEvent) {
       return res.status(400).json({ error: "An event with the same title and date already exists." });
     }
+        
     const creatingEvent = await Event.create({
       Title,
       Description,
@@ -26,9 +28,7 @@ const createEvent = async (req: Request, res: Response) => {
       Venue,
       date,
       Price,
-      Files,
-      Images,
-      mainImage,
+     
     });
     return res.status(201).json({ message: "Event created successfully." });
   } catch (error) {

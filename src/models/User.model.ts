@@ -15,11 +15,14 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: true,
       unique: true,
+      
     },
     password: {
       type: String,
-      required: false, //not required for oauth
+      required: false,
+       //not required for oauth
     },
+    
     department: {
       type: String,
       required: true,
@@ -52,6 +55,7 @@ const UserSchema = new Schema<IUser>(
       type: Number,
     },
   },
+  
   {
     timestamps: true,
   }

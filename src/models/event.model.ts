@@ -38,7 +38,7 @@ const eventSchema = new Schema<IEvent>(
     },
     mainImage: {
       type: String,
-      required: true,
+      required: false,
     },
     capacity: {
       type: Number,

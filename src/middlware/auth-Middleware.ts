@@ -10,7 +10,7 @@ const isUser = async (req: Request, res: Response, next: NextFunction) => {
   if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
     try {
       // Extract the token from the authorization header
-      token = req.headers.authorization.split(" ")[1];
+      token = req.headers.authorization?.split(" ")[1];
 
       // Verify the token and decode the user ID
       const decoded = jwt.verify(token, process.env.JWT_SECRET as jwt.Secret) as { id: string };
@@ -36,6 +36,8 @@ const isUser = async (req: Request, res: Response, next: NextFunction) => {
     // If token is not found, respond with a 401 error
     return res.status(401).json({ error: "Token not found" });
   }
+
+  
 };
 
 export { isUser };

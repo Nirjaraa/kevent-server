@@ -17,7 +17,7 @@ const registerUsers = async (req: Request, res: Response) => {
       return res.status(400).json({ error: ":Please add all the fields." });
     }
 
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email});
     if (userExists) {
       return res.status(400).json({ error: "User already exists" });
     }
@@ -32,6 +32,7 @@ const registerUsers = async (req: Request, res: Response) => {
       email: email.trim(),
       password: hashedPassword,
       batch: batch,
+
       department: department,
       verificationCode,
       emailVerified: false,
@@ -41,12 +42,12 @@ const registerUsers = async (req: Request, res: Response) => {
 
     await sendEmail(email, subject, emailText);
 
-    const userWithoutPassword = await User.findById(newUser._id).select("-password -createdAt -updatedAt verificationCode emailVerified");
+    const userWithoutPassword = await User.findById(newUser._id).select("-createdAt -updatedAt -verificationCode -emailVerified");
 
     res.status(201).json({ message: "OTP has been sent to your email verify it to register.", user: userWithoutPassword });
   } catch (error) {
-    const errorMessage = errorHandler(error as Error);
-    return res.status(500).json({ error: errorMessage });
+  const errorMessage = errorHandler(error as Error);
+  return res.status(500).json({ error: errorMessage });
   }
 };
 
@@ -156,6 +157,29 @@ const changePassword = async (req: Request, res: Response) => {
     return res.status(500).json({ error: errorMessage });
   }
 };
+//change password login
+const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email});
+    console.log('User found:', user);
+
+    if (!user) {
+      return res.status(400).send("User not found");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).send("Password changed successfully");
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
 
 //UPDATE PROFILE
 const updateProfile = async (req: Request, res: Response) => {
@@ -218,4 +242,4 @@ const resendOtp = async (req: Request, res: Response) => {
     return res.status(500).json({ error: errorMessage });
   }
 };
-export { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets, verifyEmail, resendOtp };
+export { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets, verifyEmail, resendOtp, resetPassword };
