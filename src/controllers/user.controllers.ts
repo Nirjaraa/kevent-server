@@ -14,7 +14,7 @@ import { Parser as Json2csvParser } from "json2csv";
 const registerUsers = async (req: Request, res: Response) => {
   try {
     const { firstName, lastName, email, password, batch, department, year, avatarURL } = req.body;
-    if (!firstName || !lastName || !email || !password || !batch || !department || !!year) {
+    if (!firstName || !lastName || !email || !password || !batch || !department || !year) {
       return res.status(400).json({ error: ":Please add all the fields." });
     }
 
@@ -43,7 +43,7 @@ const registerUsers = async (req: Request, res: Response) => {
 
     await sendEmail(email, subject, emailText);
 
-    const userWithoutPassword = await User.findById(newUser._id).select("-password -createdAt -updatedAt verificationCode emailVerified");
+    const userWithoutPassword = await User.findById(newUser._id).select("-password -createdAt -updatedAt -verificationCode -emailVerified");
 
     res.status(201).json({ message: "OTP has been sent to your email verify it to register.", user: userWithoutPassword });
   } catch (error) {
@@ -101,6 +101,12 @@ const login = async (req: Request, res: Response) => {
     if (user && (await bcrypt.compare(password, user.password))) {
       return res.status(201).json({ message: "Login Successful", token: generateToken(user.id), user });
     }
+    console.log("Input Email:", email);
+    console.log("Input Password:", password);
+    if (user) {
+      console.log("Stored Email:", user.email);
+      console.log("Stored Hashed Password:", user.password);
+    }
 
     return res.status(404).json({ error: "Invalid Email and Password" });
   } catch (error) {
@@ -139,11 +145,16 @@ const forgotPassword = async (req: Request, res: Response) => {
 //CHANGE PASSWORD
 const changePassword = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { email, currentPassword, password } = req.body;
     const user = await User.findOne({ email });
 
     if (!user) {
       return res.status(400).send("User not found");
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).send("Current password is incorrect");
     }
 
     const salt = await bcrypt.genSalt(10);
