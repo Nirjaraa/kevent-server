@@ -7,6 +7,7 @@ import { isValidObjectId } from "mongoose";
 import { Request, Response } from "express";
 import { sendEmail, sendOtp, verifyEmails } from "../utils/sendEmail";
 import Ticket from "../models/ticket.model";
+import Event from "../models/event.model";
 const { v4: uuidv4 } = require("uuid");
 import { Parser as Json2csvParser } from "json2csv";
 
@@ -215,14 +216,31 @@ const updateProfile = async (req: Request, res: Response) => {
   }
 };
 
+//VIEW TICKETS BY ID
 const viewTickets = async (req: Request, res: Response) => {
   try {
-    const userId = req.user?.id;
-    const tickets = await Ticket.find({ userId });
-    if (!tickets || tickets.length === 0) {
-      return res.status(404).json({ error: "No tickets found" });
+    const userId = req.user;
+    const tickets = await Ticket.find({ userId }).populate("eventId", "Title date Venue").lean();
+    if (!tickets.length) {
+      return res.status(404).json({ message: "No events found for this user." });
     }
-    return res.status(200).json({ message: "Tickets found successfully", tickets });
+
+    return res.status(200).json({ message: "Your tickets  :", tickets });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+//VIEW EVENT IN PROFILE
+const viewEventsById = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user;
+    const events = await Event.find({ creatorId: userId }, "Title date Venue").lean();
+    if (!events.length) {
+      return res.status(404).json({ message: "No events found for this user." });
+    }
+
+    return res.status(200).json({ message: "Your created events:", events });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
     return res.status(500).json({ error: errorMessage });
@@ -253,4 +271,4 @@ const resendOtp = async (req: Request, res: Response) => {
     return res.status(500).json({ error: errorMessage });
   }
 };
-export { registerUsers, login, forgotPassword, changePassword, updateProfile, viewTickets, verifyEmail, resendOtp, getProfile };
+export { registerUsers, login, forgotPassword, changePassword, updateProfile, verifyEmail, resendOtp, getProfile, viewTickets, viewEventsById };

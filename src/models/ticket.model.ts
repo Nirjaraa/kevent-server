@@ -5,10 +5,12 @@ const ticketSchema = new Schema<ITicket>({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
+    ref: "User",
   },
   eventId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
+    ref: "Event",
   },
   capacity: {
     type: Number,

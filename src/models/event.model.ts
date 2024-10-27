@@ -17,7 +17,7 @@ const eventSchema = new Schema<IEvent>(
     },
     Venue: {
       type: String,
-      required: false, //not required for oauth
+      required: true, //not required for oauth
     },
     date: {
       type: Date,
@@ -40,10 +40,7 @@ const eventSchema = new Schema<IEvent>(
       type: String,
       required: true,
     },
-    time: {
-      type: Number,
-      required: true,
-    },
+
     capacity: {
       type: Number,
     },
@@ -51,8 +48,13 @@ const eventSchema = new Schema<IEvent>(
       type: Number,
     },
 
-    creatorId: { type: mongoose.Schema.Types.ObjectId },
+    creatorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
   },
+
   {
     timestamps: true,
   }
