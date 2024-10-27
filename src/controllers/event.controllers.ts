@@ -8,13 +8,14 @@ import { createNotification } from "../controllers/notification.controllers";
 
 //CREATE EVENT
 const createEvent = async (req: Request, res: Response) => {
+  console.log(req.body);
   try {
     const { Title, Description, contactNumber, Venue, date, Price, Files, Images, mainImage, capacity } = req.body;
-
-    if (!Title || !Description || !contactNumber || !Venue || !date || !Price || !mainImage) {
+    const creatorId = req.user;
+    if (!Title || !Description || !contactNumber || !Venue || !date || !Price) {
       return res.status(400).json({ error: ":Please add all the fields." });
     }
-    const existingEvent = await Event.findOne({ Title, Date });
+    const existingEvent = await Event.findOne({ Title, date });
 
     if (existingEvent) {
       return res.status(400).json({ error: "An event with the same title and date already exists." });
@@ -29,6 +30,8 @@ const createEvent = async (req: Request, res: Response) => {
       Files,
       Images,
       mainImage,
+      capacity,
+      creatorId,
     });
     return res.status(201).json({ message: "Event created successfully." });
   } catch (error) {
@@ -43,6 +46,15 @@ const updateEvent = async (req: Request, res: Response) => {
     const eventId = req.params.id;
     const { Title, Description, contactNumber, Venue, date, Price, Images, Files, mainImage, capacity } = req.body;
     const tickets = await Ticket.find({ eventId });
+    const existingEvent = await Event.findById(eventId);
+
+    if (!existingEvent) {
+      return res.status(404).json({ error: "Event not found." });
+    }
+
+    if (existingEvent.creatorId.toString() !== req.user.toString()) {
+      return res.status(403).json({ error: "You are not authorized to update this event." });
+    }
 
     const updatedEvent = await Event.findByIdAndUpdate(eventId, { Title, Description, contactNumber, Venue, date, Price, Images, Files, mainImage, capacity }, { new: true });
 
@@ -65,6 +77,16 @@ const updateEvent = async (req: Request, res: Response) => {
 const deleteEvent = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
+    const existingEvent = await Event.findById(eventId);
+
+    if (!existingEvent) {
+      return res.status(404).json({ error: "Event not found." });
+    }
+
+    if (existingEvent.creatorId.toString() !== req.user.toString()) {
+      return res.status(403).json({ error: "You are not authorized to delete this event." });
+    }
+
     const deletedEvent = await Event.findByIdAndDelete(eventId);
     const tickets = await Ticket.find({ eventId });
     if (!deletedEvent) {
