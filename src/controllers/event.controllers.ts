@@ -2,6 +2,7 @@ import { errorHandler } from "../utils/error-handler";
 import Event from "../models/event.model";
 import { Request, Response } from "express";
 import Ticket from "../models/ticket.model";
+import Notification from "../models/notification.model";
 
 //CREATE EVENT
 const createEvent = async (req: Request, res: Response) => {
@@ -41,7 +42,7 @@ const updateEvent = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
     const { Title, Description, contactNumber, Venue, date, Price, Images, Files, mainImage, capacity } = req.body;
-    const tickets = await Ticket.find({ eventId });
+    const tickets = await Ticket.find({ eventId }).select("userId ");
     const existingEvent = await Event.findById(eventId);
 
     if (!existingEvent) {
@@ -57,7 +58,7 @@ const updateEvent = async (req: Request, res: Response) => {
     if (!updatedEvent) {
       return res.status(404).json({ error: "Event was not updated." });
     }
-
+    await Promise.all(tickets.map((ticket) => Notification.create({ userId: ticket.userId, eventId, type: "Updated Event", message: `${Title} has been updated.` })));
     return res.status(200).json({ message: "Event updated successfully." });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
@@ -75,7 +76,7 @@ const deleteEvent = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Event not found." });
     }
 
-    if (existingEvent.userId.toString() !== req.user.toString()) {
+    if (existingEvent.userId.toString() !== req.user.id.toString()) {
       return res.status(403).json({ error: "You are not authorized to delete this event." });
     }
 
@@ -84,15 +85,10 @@ const deleteEvent = async (req: Request, res: Response) => {
     if (!deletedEvent) {
       return res.status(404).json({ error: "Event not found." });
     }
+    await Ticket.deleteMany({ eventId });
 
-    const userIds = tickets.map((ticket) => ticket.userId);
-    const eventTitle = deletedEvent.Title;
-    // userIds.forEach((userId) => {
-    //   io.to(userId.toString()).emit("eventUpdated", {
-    //     message: `Event "${eventTitle}" has been deleted.`,
-    //     eventId: deletedEvent._id,
-    //   });
-    // });
+    const eventTitle = existingEvent.Title;
+    await Promise.all(tickets.map((ticket) => Notification.create({ userId: ticket.userId, eventId, type: "Deleted Event", message: `${eventTitle} has been deleted.` })));
 
     return res.status(200).json({ message: "Event deleted successfully." });
   } catch (error) {

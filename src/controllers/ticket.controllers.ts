@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import { errorHandler } from "../utils/error-handler";
 import Event from "../models/event.model";
 import { Request, Response } from "express";
