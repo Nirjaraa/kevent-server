@@ -1,11 +1,10 @@
 import mongoose from "mongoose";
 import { errorHandler } from "../utils/error-handler";
 import Event from "../models/event.model";
-import { isValidObjectId } from "../utils/isValidObjectId";
 import { Request, Response } from "express";
 import Ticket from "../models/ticket.model";
 import QRCode from "qrcode";
-import { createNotification } from "../controllers/notification.controllers";
+import Notification from "../models/notification.model";
 
 const bookTickets = async (req: Request, res: Response) => {
   try {
@@ -43,7 +42,8 @@ const bookTickets = async (req: Request, res: Response) => {
     const qrData = `User ID: ${userId}, Event ID: ${eventId}, Ticket Count: ${ticketCount}`;
     const qrCodeUrl = await QRCode.toDataURL(qrData); // Generates QR code as a data URL
 
-    await createNotification(userId, `Ticket confirmed for event ${eventId}.`, "confirmation");
+    const notification = await Notification.create({ userId, eventId, type: "Booked Tickets", message: `You have successfully booked ${ticketCount} tickets for the ${event.Title}.` });
+
     return res.status(201).json({
       message: "Tickets booked successfully.",
       ticket: newTicket,

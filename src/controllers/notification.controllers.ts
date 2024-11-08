@@ -1,41 +1,14 @@
 import Notification from "../models/notification.model";
+import { Request, Response } from "express";
 
-const createNotification = async (userId: string, message: string, type: string) => {
+const getNotifications = async (req: Request, res: Response) => {
   try {
-    await Notification.create({ userId, message, type });
+    const notifications = await Notification.find({ userId: req.user.id });
+    return res.status(200).json({ notifications });
   } catch (error) {
     console.error("Error creating notification:", error);
     throw new Error("Failed to create notification");
   }
 };
 
-// Get all notifications for a user
-const getNotificationsByUser = async (userId: string) => {
-  try {
-    return await Notification.find({ userId });
-  } catch (error) {
-    console.error("Error fetching notifications:", error);
-    throw new Error("Failed to fetch notifications");
-  }
-};
-// // Mark a notification as read
-// const markNotificationAsRead = async (notificationId: string) => {
-//   try {
-//     await Notification.findByIdAndUpdate(notificationId, { isRead: true }, { new: true });
-//   } catch (error) {
-//     console.error("Error marking notification as read:", error);
-//     throw new Error("Failed to mark notification as read");
-//   }
-// };
-
-// // delete notifications
-// const deleteNotification = async (notificationId: string) => {
-//   try {
-//     await Notification.findByIdAndDelete(notificationId);
-//   } catch (error) {
-//     console.error("Error deleting notification:", error);
-//     throw new Error("Failed to delete notification");
-//   }
-// };
-
-export { createNotification };
+export { getNotifications };

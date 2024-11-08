@@ -1,7 +1,9 @@
-// import { Router } from "express";
-// const router: Router = Router();
-// import { createNotification } from "../controllers/notification.controllers";
+import express from "express";
+import { getNotifications } from "../controllers/notification.controllers";
+import { isUser } from "../middlware/auth-Middleware";
 
-// router.post("/notifications/:userId", createNotification);
+const router = express.Router();
 
-// export default router;
+router.get("/notification", isUser, getNotifications);
+
+export default router;

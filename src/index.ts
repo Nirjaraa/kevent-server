@@ -1,17 +1,23 @@
 import express, { Application, Request, Response } from "express";
 import dotenv from "dotenv";
+import http from "http";
+import { Server } from "socket.io";
 import connectDB from "./db/connectDB";
 import userRoutes from "./routes/user.route";
 import eventRoutes from "./routes/event.route";
 import ticketRoutes from "./routes/ticket.route";
-import authRoutes from "./routes/auth.routes";
-import passport from "passport";
-import session from "express-session";
+import notificationRoutes from "./routes/notification.route";
 import cors from "cors";
 
 dotenv.config();
 connectDB();
 const app: Application = express();
+const server = http.createServer(app); // Create HTTP server for Socket.IO
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3001", // Allow your frontend to connect
+  },
+});
 
 app.use(express.json());
 
@@ -21,26 +27,23 @@ app.use(
   })
 );
 
-// Enable CORS preflight handling
-
-// app.use(
-//   session({
-//     secret: process.env.EXAMPLE_CLIENT_SECRET || "default_secret_key",
-//     resave: false,
-//     saveUninitialized: true,
-//   })
-// );
-
-// // Initialize Passport
-// app.use(passport.initialize());
-// app.use(passport.session());
-
 // Use routes
 app.use("/users", userRoutes);
 app.use("/events", eventRoutes);
 app.use("/tickets", ticketRoutes);
+app.use("/notifications", notificationRoutes);
 
-app.use(authRoutes); // Ensure that the auth routes are added here
+io.on("connection", (socket) => {
+  console.log("User connected:", socket.id);
+
+  // Here, you can define any custom Socket.IO events
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
+});
+
+// Export `io` instance to use in notification service if needed
+export { io };
 
 const port = process.env.PORT || 3000;
 
