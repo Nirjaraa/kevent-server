@@ -1,7 +1,23 @@
 import { Router } from "express";
 const router: Router = Router();
-import { registerUsers, login, forgotPassword, changePassword, updateProfile, verifyEmail, viewTickets, resendOtp, getProfile, viewEventsById } from "../controllers/user.controllers";
+import {
+  registerUsers,
+  login,
+  forgotPassword,
+  changePassword,
+  updateProfile,
+  verifyEmail,
+  viewTickets,
+  resendOtp,
+  getProfile,
+  viewEventsById,
+  uploadAvatar,
+} from "../controllers/user.controllers";
 import { isUser } from "../middlware/auth-Middleware";
+import multer from "multer";
+import { storage } from "../db/cloudinaryConfig";
+
+const imageUpload = multer({ storage: storage });
 
 router.post("/register", registerUsers);
 router.post("/login", login);
@@ -13,7 +29,10 @@ router.get("/profile", isUser, getProfile);
 router.put("/update-profile", isUser, updateProfile);
 router.get("/viewtickets", isUser, viewTickets);
 router.get("/viewevents", isUser, viewEventsById);
+router.post("/upload-profileImage", isUser, imageUpload.single("avatar"), uploadAvatar);
 
 // router.get("/events/:eventId/attendees/export", isUser, exportAttendeesToCSV);
+
+const upload = multer({ storage: storage });
 
 export default router;

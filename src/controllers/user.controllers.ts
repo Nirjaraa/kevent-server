@@ -199,29 +199,11 @@ const updateProfile = async (req: Request, res: Response) => {
   try {
     const userId = req.user;
 
-    const { firstName, lastName, password, batch, department, year } = req.body;
-    let avatarURL = "";
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: "user_avatars",
-      });
-      avatarURL = result.secure_url;
-    }
-    const updateData: any = {
-      firstName,
-      lastName,
-      password,
-      batch,
-      department,
-      year,
-    };
+    const { firstName, lastName, password, batch, department, year, avatarURL } = req.body;
 
-    if (avatarURL) {
-      updateData.avatarURL = avatarURL;
-    }
     const user = await User.findByIdAndUpdate(
       userId,
-      updateData,
+      { firstName, lastName, password, batch, department, year, avatarURL },
       { new: true, runValidators: true } // Return updated document and validate
     ).select(" -createdAt -resetPasswordOtp -resetPasswordOtpExpires -updatedAt -emailVerified -verificationCode");
 
