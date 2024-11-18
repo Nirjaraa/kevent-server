@@ -10,7 +10,6 @@ import Ticket from "../models/ticket.model";
 import Event from "../models/event.model";
 const { v4: uuidv4 } = require("uuid");
 import { v2 as cloudinary } from "cloudinary";
-
 import { Parser as Json2csvParser } from "json2csv";
 
 //SIGNUP
