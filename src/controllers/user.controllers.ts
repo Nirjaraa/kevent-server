@@ -300,4 +300,69 @@ const uploadAvatar = async (req: Request, res: Response) => {
     res.status(500).send({ message: "Something went wrong." });
   }
 };
-export { registerUsers, login, forgotPassword, changePassword, updateProfile, verifyEmail, resendOtp, getProfile, viewTickets, viewEventsById, uploadAvatar };
+
+const expiredTickets = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user;
+    const currentDate = new Date();
+    console.log(currentDate);
+    console.log(userId);
+
+    const tickets = await Ticket.find({ userId: userId });
+
+    // Use Promise.all to fetch event details for each ticket
+    const ticketsWithEventDetails = await Promise.all(
+      tickets.map(async (ticket) => {
+        const event = await Event.findById(ticket.eventId); // Get event by eventId
+        if (event) {
+          // Attach event date to the ticket
+          return { ...ticket.toObject(), eventDate: event.date };
+        }
+        return null;
+      })
+    );
+
+    // Filter tickets where the event date is in the past
+    const expiredTickets = ticketsWithEventDetails.filter((ticket) => ticket && new Date(ticket.eventDate) < currentDate);
+
+    return res.status(200).json({
+      success: true,
+      message: "Expired tickets retrieved successfully",
+      data: expiredTickets,
+    });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+const expiredEvents = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user;
+    const currentDate = new Date();
+
+    const expiredEvents = await Event.find({
+      userId: userId, // User is the creator of the event
+      date: { $lt: currentDate }, // Event date is in the past
+    });
+
+    // If no expired events are found
+    if (expiredEvents.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No expired events found for this user",
+      });
+    }
+
+    // Return the expired events
+    return res.status(200).json({
+      success: true,
+      message: "Expired events retrieved successfully",
+      data: expiredEvents,
+    });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+
+export { expiredEvents, expiredTickets, registerUsers, login, forgotPassword, changePassword, updateProfile, verifyEmail, resendOtp, getProfile, viewTickets, viewEventsById, uploadAvatar };
