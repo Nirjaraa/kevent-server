@@ -12,6 +12,14 @@ const createEvent = async (req: Request, res: Response) => {
     if (!Title || !Description || !contactNumber || !Venue || !date || !Price) {
       return res.status(400).json({ error: ":Please add all the fields." });
     }
+
+    const eventDate = new Date(date);
+    const currentDate = new Date();
+
+    // Check if the event date is less than the current date
+    if (eventDate < currentDate) {
+      return res.status(400).json({ error: "The event date cannot be in the past." });
+    }
     const existingEvent = await Event.findOne({ Title, date });
 
     if (existingEvent) {
