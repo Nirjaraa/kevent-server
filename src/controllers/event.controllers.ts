@@ -3,11 +3,12 @@ import Event from "../models/event.model";
 import { Request, Response } from "express";
 import Ticket from "../models/ticket.model";
 import Notification from "../models/notification.model";
+import { cloudinary } from "../db/cloudinaryConfig";
 
 //CREATE EVENT
 const createEvent = async (req: Request, res: Response) => {
   try {
-    const { Title, Description, contactNumber, Venue, date, Price, Files, Images, mainImage, capacity } = req.body;
+    const { Title, Description, contactNumber, Venue, date, Price, Files, Images, capacity } = req.body;
     const userId = req.user.id;
     if (!Title || !Description || !contactNumber || !Venue || !date || !Price) {
       return res.status(400).json({ error: ":Please add all the fields." });
@@ -25,6 +26,20 @@ const createEvent = async (req: Request, res: Response) => {
     if (existingEvent) {
       return res.status(400).json({ error: "An event with the same title and date already exists." });
     }
+    if (!req.file) {
+      return res.status(400).json({ error: "No image uploaded, please provide an image." });
+    }
+    let mainImageUrl = ""; // Default value in case no file is uploaded
+    if (req.file && req.file.path) {
+      const result = await cloudinary.uploader.upload(req.file.path); // Upload the file to Cloudinary
+      mainImageUrl = result.secure_url; // Retrieve the secure URL of the uploaded image
+    } else {
+      return res.status(400).json({ error: "Main image is required." }); // Handle missing image case
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: "No image uploaded, please provide an image." });
+    }
+
     const creatingEvent = await Event.create({
       Title,
       Description,
@@ -33,12 +48,14 @@ const createEvent = async (req: Request, res: Response) => {
       date,
       Price,
       Files,
-      Images,
-      mainImage,
-      capacity,
+      Images: capacity,
       userId,
+      mainImage: mainImageUrl,
     });
-    return res.status(201).json({ message: "Event created successfully." });
+    console.log("Received File:", req.file);
+    console.log("Request Body:", req.body);
+
+    return res.status(201).json({ message: "Event created successfully.", creatingEvent });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
     return res.status(500).json({ error: errorMessage });
@@ -161,4 +178,37 @@ const searchEvents = async (req: Request, res: Response) => {
   }
 };
 
-export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents };
+const uploadmainImage = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send({ message: "No file uploaded." });
+    }
+
+    // Retrieve the uploaded image URL from Cloudinary
+    const mainImage = req.file?.path;
+
+    // Find the event by its ID
+    const event = await Event.findById(req.params.eventId); // Use req.params to get the event ID
+
+    if (!event) {
+      return res.status(404).send({ message: "Event not found." });
+    }
+
+    // If the event already has a main image, update it; otherwise, set a new one
+    const updatedEvent = await Event.findByIdAndUpdate(req.params.eventId, { mainImage }, { new: true });
+
+    if (!updatedEvent) {
+      return res.status(404).send({ message: "Error updating the event." });
+    }
+
+    res.status(200).json({
+      message: updatedEvent.mainImage ? "Image updated successfully!" : "Image uploaded successfully for the first time!",
+      mainImage: updatedEvent.mainImage, // Send the updated image URL in the response
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Something went wrong." });
+  }
+};
+
+export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents, uploadmainImage };
