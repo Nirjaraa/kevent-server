@@ -8,11 +8,15 @@ import { cloudinary } from "../db/cloudinaryConfig";
 //CREATE EVENT
 const createEvent = async (req: Request, res: Response) => {
   try {
-    const { Title, Description, contactNumber, Venue, date, Price, Files, Images, capacity } = req.body;
+    const { Title, Description, contactNumber, Venue, date, Price, Files } = req.body;
     const userId = req.user.id;
     if (!Title || !Description || !contactNumber || !Venue || !date || !Price) {
       return res.status(400).json({ error: ":Please add all the fields." });
     }
+
+    console.log("Files received:", req.files); // Log all uploaded files
+    console.log("File received:", req.file); // Log the single file
+    console.log("Request Body:", req.body); // Log request body
 
     const eventDate = new Date(date);
     const currentDate = new Date();
@@ -26,19 +30,23 @@ const createEvent = async (req: Request, res: Response) => {
     if (existingEvent) {
       return res.status(400).json({ error: "An event with the same title and date already exists." });
     }
-    if (!req.file) {
-      return res.status(400).json({ error: "No image uploaded, please provide an image." });
-    }
-    let mainImageUrl = ""; // Default value in case no file is uploaded
+
+    let mainImageUrl = "";
     if (req.file && req.file.path) {
-      const result = await cloudinary.uploader.upload(req.file.path); // Upload the file to Cloudinary
-      mainImageUrl = result.secure_url; // Retrieve the secure URL of the uploaded image
-    } else {
-      return res.status(400).json({ error: "Main image is required." }); // Handle missing image case
+      const mainImageResult = await cloudinary.uploader.upload(req.file.path);
+      mainImageUrl = mainImageResult.secure_url;
     }
-    if (!req.file) {
-      return res.status(400).json({ error: "No image uploaded, please provide an image." });
-    }
+
+    // Additional images handling
+    let imagesUrls: string[] = [];
+    if (req.files && Array.isArray(req.files)) {
+      const uploadPromises = req.files.slice(0, 5).map((file) => cloudinary.uploader.upload(file.path));
+
+      // Await all uploads and store URLs
+      const uploadResults = await Promise.all(uploadPromises);
+      imagesUrls = uploadResults.map((result) => result.secure_url);
+    } // Handle main image (single file)
+    console.log("hello");
 
     const creatingEvent = await Event.create({
       Title,
@@ -48,12 +56,13 @@ const createEvent = async (req: Request, res: Response) => {
       date,
       Price,
       Files,
-      Images: capacity,
+      Images: imagesUrls,
       userId,
       mainImage: mainImageUrl,
     });
-    console.log("Received File:", req.file);
-    console.log("Request Body:", req.body);
+    console.log("Files received:", req.files); // Log all uploaded files
+    console.log("File received:", req.file); // Log the single file
+    console.log("Request Body:", req.body); // Log request body
 
     return res.status(201).json({ message: "Event created successfully.", creatingEvent });
   } catch (error) {
