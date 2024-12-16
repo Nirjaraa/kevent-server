@@ -316,7 +316,7 @@ const expiredTickets = async (req: Request, res: Response) => {
         const event = await Event.findById(ticket.eventId); // Get event by eventId
         if (event) {
           // Attach event date to the ticket
-          return { ...ticket.toObject(), eventDate: event.date };
+          return { ...ticket.toObject(), eventDate: event.date, Title: event.Title, Venue: event.Venue };
         }
         return null;
       })
@@ -335,6 +335,7 @@ const expiredTickets = async (req: Request, res: Response) => {
     return res.status(500).json({ error: errorMessage });
   }
 };
+
 const expiredEvents = async (req: Request, res: Response) => {
   try {
     const userId = req.user;
