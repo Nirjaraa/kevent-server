@@ -27,15 +27,15 @@ const UserSchema = new Schema<IUser>(
 
     avatarURL: {
       type: String,
-      required: false,
+      required: true,
     },
     batch: {
       type: Number,
-      required: true,
+      required: false,
     },
     year: {
       type: Number,
-      required: true,
+      required: false,
     },
     exampleId: {
       type: String,
@@ -54,6 +54,14 @@ const UserSchema = new Schema<IUser>(
     },
     verificationCode: {
       type: Number,
+    },
+    firebaseUid: {
+      type: String,
+      required: false,
+    },
+    provider: {
+      type: String,
+      required: false,
     },
   },
   {

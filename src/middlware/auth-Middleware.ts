@@ -2,6 +2,7 @@ import { NextFunction, Response, Request } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User.model";
 import { IUser } from "../interface/User.interface";
+import admin from "../firebaseAdmin";
 
 const isUser = async (req: Request, res: Response, next: NextFunction) => {
   let token;

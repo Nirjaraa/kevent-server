@@ -13,6 +13,8 @@ export interface IUser extends Document {
   exampleId?: string;
   resetPasswordOtp?: string;
   resetPasswordOtpExpires?: Date;
-  emailVerified: Boolean;
+  emailVerified?: Boolean;
   verificationCode?: Number;
+  firebaseUid?: string;
+  provider?: string;
 }

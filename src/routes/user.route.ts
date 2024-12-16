@@ -12,6 +12,8 @@ import {
   getProfile,
   viewEventsById,
   uploadAvatar,
+  expiredEvents,
+  expiredTickets,
 } from "../controllers/user.controllers";
 import { isUser } from "../middlware/auth-Middleware";
 import multer from "multer";
@@ -30,9 +32,9 @@ router.put("/update-profile", isUser, updateProfile);
 router.get("/viewtickets", isUser, viewTickets);
 router.get("/viewevents", isUser, viewEventsById);
 router.post("/upload-profileImage", isUser, imageUpload.single("avatar"), uploadAvatar);
+router.get("/expiredtickets", isUser, expiredTickets);
+router.get("/expiredevents", isUser, expiredEvents);
 
 // router.get("/events/:eventId/attendees/export", isUser, exportAttendeesToCSV);
-
-const upload = multer({ storage: storage });
 
 export default router;
