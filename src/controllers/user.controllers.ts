@@ -103,8 +103,7 @@ const login = async (req: Request, res: Response) => {
     if (user && (await bcrypt.compare(password, user.password))) {
       return res.status(201).json({ message: "Login Successful", token: generateToken(user.id), user });
     }
-    console.log("Input Email:", email);
-    console.log("Input Password:", password);
+
     if (user) {
       console.log("Stored Email:", user.email);
       console.log("Stored Hashed Password:", user.password);

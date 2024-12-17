@@ -3,10 +3,7 @@ const router: Router = Router();
 import { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents } from "../controllers/event.controllers";
 import { isUser } from "../middlware/auth-Middleware";
 import multer from "multer";
-import { NextFunction, Response, Request } from "express";
 import { storage, uploadMiddleware } from "../db/cloudinaryConfig";
-
-// const upload = multer({ storage: storage });
 
 const upload = multer({ storage: storage });
 

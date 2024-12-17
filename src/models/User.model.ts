@@ -18,11 +18,10 @@ const UserSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      //not required for oauth
     },
     department: {
       type: String,
-      required: true,
+      required: false,
     },
 
     avatarURL: {

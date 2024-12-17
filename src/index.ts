@@ -5,6 +5,7 @@ import userRoutes from "./routes/user.route";
 import eventRoutes from "./routes/event.route";
 import ticketRoutes from "./routes/ticket.route";
 import notificationRoutes from "./routes/notification.route";
+import authRoutes from "./routes/authRoutes";
 import cors from "cors";
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use("/users", userRoutes);
 app.use("/events", eventRoutes);
 app.use("/tickets", ticketRoutes);
 app.use("/notifications", notificationRoutes);
+app.use("/", authRoutes);
 
 const port = process.env.PORT || 3000;
 
