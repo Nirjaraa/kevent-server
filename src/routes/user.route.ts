@@ -17,9 +17,9 @@ import {
 } from "../controllers/user.controllers";
 import { isUser } from "../middlware/auth-Middleware";
 import multer from "multer";
-import { storage } from "../db/cloudinaryConfig";
+import { profileStorage } from "../db/cloudinaryConfig";
 
-const imageUpload = multer({ storage: storage });
+const imageUpload = multer({ storage: profileStorage });
 
 router.post("/register", registerUsers);
 router.post("/login", login);

@@ -27,7 +27,7 @@ const UserSchema = new Schema<IUser>(
 
     avatarURL: {
       type: String,
-      required: true,
+      required: false,
     },
     batch: {
       type: Number,

@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import dotenv from "dotenv";
+import multer from "multer";
 
 dotenv.config();
 
@@ -10,37 +11,39 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 
-// const storage = new CloudinaryStorage({
-//   cloudinary: cloudinary,
-//   params: async (req, file) => {
-//     const allowedImageFormats = ["image/jpeg", "image/png", "image/jpg", "image/svg+xml", "image/webp"];
-//     console.log("File mimetype:", file.mimetype);
-
-//     const isPDF = file.mimetype === "application/pdf";
-//     if (isPDF) {
-//       return {
-//         folder: "pdfs",
-//         resource_type: "raw", // Specify "raw" for PDFs (non-image files)
-//         public_id: `${Date.now()}-${file.originalname}`, // Use a timestamp as part of the public ID
-//       };
-//     }
-
-//     console.log("File mimetype:", file.mimetype);
-
-//     if (!allowedImageFormats.includes(file.mimetype)) {
-//       throw new Error(`Invalid image format. Received ${file.mimetype}. Allowed formats are: jpeg, png, jpg, svg, webp.`);
-//     }
-
-//     const fileFormat = file.mimetype.split("/")[1];
-
-//     return {
-//       folder: "avatars", // You can set a different folder for images
-//       format: allowedImageFormats.includes(fileFormat) ? fileFormat : "jpeg", // Default to jpeg if format is unsupported
-//       public_id: `${Date.now()}-${file.originalname}`, // Unique public ID for the image
-//     };
-//   },
-// });
 const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req: Request, file: Express.Multer.File) => {
+    let folder = "uploads";
+    if (file.fieldname === "mainImage") folder = "mainImages";
+    if (file.fieldname === "otherImages") folder = "otherImages";
+    if (file.fieldname === "file") folder = "documents";
+
+    const allowedFormats = ["jpeg", "png", "svg", "jpg", "pdf", "docx"];
+    const fileFormat = file.mimetype.split("/")[1];
+
+    if (file.fieldname === "files" && fileFormat !== "pdf") {
+      throw new Error("Only PDF files are allowed for the 'files' field");
+    }
+
+    return {
+      folder: folder,
+      format: allowedFormats.includes(fileFormat) ? fileFormat : "jpeg",
+      public_id: `${Date.now()}-${file.originalname.replace(/\s/g, "-")}`, // Fixed template literal
+    };
+  },
+});
+
+const uploadMiddleware = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+}).fields([
+  { name: "mainImage", maxCount: 1 },
+  { name: "otherImages", maxCount: 5 },
+  { name: "files", maxCount: 3 },
+]);
+
+const profileStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req: Request, file: Express.Multer.File) => {
     const allowedFormats = ["jpeg", "png", "svg", "jpg"];
@@ -53,4 +56,4 @@ const storage = new CloudinaryStorage({
   },
 });
 
-export { cloudinary, storage };
+export { cloudinary, storage, profileStorage, uploadMiddleware };
