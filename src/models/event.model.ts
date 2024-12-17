@@ -44,6 +44,18 @@ const eventSchema = new Schema<IEvent>(
     capacity: {
       type: Number,
     },
+    department: {
+      type: String,
+      required: false,
+    },
+    club: {
+      type: String,
+      required: false,
+    },
+    category: {
+      type: String,
+      required: false,
+    },
     bookedTickets: {
       type: Number,
     },

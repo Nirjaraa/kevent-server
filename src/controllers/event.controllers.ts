@@ -7,7 +7,7 @@ import { cloudinary } from "../db/cloudinaryConfig";
 
 const createEvent = async (req: Request, res: Response) => {
   try {
-    const { Title, Description, contactNumber, Venue, date, Price } = req.body;
+    const { Title, Description, contactNumber, Venue, date, Price, department, club, category } = req.body;
 
     const userId = req.user.id;
     if (!Title || !Description || !contactNumber || !Venue || !date || !Price) {
@@ -46,6 +46,9 @@ const createEvent = async (req: Request, res: Response) => {
       Images,
       userId,
       mainImage,
+      department,
+      club,
+      category,
     });
 
     return res.status(201).json({ message: "Event created successfully.", creatingEvent });
@@ -59,7 +62,7 @@ const createEvent = async (req: Request, res: Response) => {
 const updateEvent = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
-    const { Title, Description, contactNumber, Venue, date, Price, capacity } = req.body;
+    const { Title, Description, contactNumber, Venue, date, Price, capacity, department, club, category } = req.body;
     const tickets = await Ticket.find({ eventId }).select("userId ");
     const existingEvent = await Event.findById(eventId);
 
@@ -99,6 +102,9 @@ const updateEvent = async (req: Request, res: Response) => {
         date: date || existingEvent.date,
         Price: Price || existingEvent.Price,
         capacity: capacity || existingEvent.capacity,
+        department: department || existingEvent.department,
+        club: club || existingEvent.club,
+        category: category || existingEvent.category,
         mainImage,
         Files,
         Images,
@@ -189,7 +195,7 @@ const searchEvents = async (req: Request, res: Response) => {
     }
     const regex = new RegExp(search.toString(), "i"); // 'i' for case-insensitive search
     const eventExists = await Event.find({
-      $or: [{ department: regex }, { Title: regex }],
+      $or: [{ department: regex }, { Title: regex }, { category: regex }, { club: regex }],
     }).sort({ date: -1 });
 
     if (!eventExists.length) {
