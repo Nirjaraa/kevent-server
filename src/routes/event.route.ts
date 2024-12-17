@@ -11,7 +11,7 @@ import { storage, uploadMiddleware } from "../db/cloudinaryConfig";
 const upload = multer({ storage: storage });
 
 router.post("/createevent", isUser, uploadMiddleware, createEvent);
-router.put("/updateevent/:id", isUser, updateEvent);
+router.put("/updateevent/:id", isUser, uploadMiddleware, updateEvent);
 router.delete("/deleteevent/:id", isUser, deleteEvent);
 router.get("/viewevents", viewAllEvents);
 router.get("/viewevent/:id", viewAnEvent);
