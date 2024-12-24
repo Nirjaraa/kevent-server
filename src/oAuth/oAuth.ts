@@ -69,14 +69,6 @@ export const googleCallback = async (req: Request, res: Response) => {
       { expiresIn: "3h" } // Expiration time (3 hours in this case)
     );
 
-    // Step 6: Respond with the JWT token and user details
-    res.json({
-      success: true,
-      message: "Google Sign-in Successful",
-      token, // Include the JWT token in the response
-      user, // Optionally include user details (for frontend)
-    });
-
     res.send(`
       <html>
         <head>
