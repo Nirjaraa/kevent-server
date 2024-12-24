@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import { errorHandler } from "../utils/error-handler";
 import bcrypt from "bcryptjs";
 import User from "../models/User.model";
@@ -9,8 +8,6 @@ import { sendEmail, sendOtp, verifyEmails } from "../utils/sendEmail";
 import Ticket from "../models/ticket.model";
 import Event from "../models/event.model";
 const { v4: uuidv4 } = require("uuid");
-import { v2 as cloudinary } from "cloudinary";
-import { Parser as Json2csvParser } from "json2csv";
 
 //SIGNUP
 const registerUsers = async (req: Request, res: Response) => {
