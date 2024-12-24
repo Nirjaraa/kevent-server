@@ -54,10 +54,7 @@ const UserSchema = new Schema<IUser>(
     verificationCode: {
       type: Number,
     },
-    firebaseUid: {
-      type: String,
-      required: false,
-    },
+
     provider: {
       type: String,
       required: false,

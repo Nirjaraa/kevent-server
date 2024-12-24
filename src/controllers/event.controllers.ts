@@ -3,7 +3,6 @@ import Event from "../models/event.model";
 import { Request, Response } from "express";
 import Ticket from "../models/ticket.model";
 import Notification from "../models/notification.model";
-import { cloudinary } from "../db/cloudinaryConfig";
 
 const createEvent = async (req: Request, res: Response) => {
   try {
