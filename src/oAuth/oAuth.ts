@@ -14,10 +14,6 @@ const oauth2Client = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_U
 
 // Generate Google OAuth URL
 export const loginWithGoogle = (req: Request, res: Response) => {
-  console.log("Client ID:", process.env.GOOGLE_CLIENT_ID);
-  console.log("Client Secret:", process.env.GOOGLE_CLIENT_SECRET);
-  console.log("Redirect URI:", process.env.REDIRECT_URI);
-
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: "offline",
     scope: ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email"],
@@ -27,10 +23,6 @@ export const loginWithGoogle = (req: Request, res: Response) => {
 
 // Handle Google OAuth callback and save user to DB
 export const googleCallback = async (req: Request, res: Response) => {
-  console.log("Client ID 1:", process.env.GOOGLE_CLIENT_ID);
-  console.log("Client Secret 2:", process.env.GOOGLE_CLIENT_SECRET);
-  console.log("Redirect URI 3:", process.env.REDIRECT_URI);
-
   const code = req.query.code as string;
 
   try {
@@ -62,7 +54,7 @@ export const googleCallback = async (req: Request, res: Response) => {
         provider: "google",
         batch: "",
         department: "",
-        year: "", // Default value (update if needed)
+        year: "",
       });
 
       await user.save();
@@ -84,6 +76,20 @@ export const googleCallback = async (req: Request, res: Response) => {
       token, // Include the JWT token in the response
       user, // Optionally include user details (for frontend)
     });
+
+    res.send(`
+      <html>
+        <head>
+          <script>
+            window.opener.postMessage({ token: "${token}" }, "http://localhost:3001");
+            window.close();
+          </script>
+        </head>
+        <body>
+          <p>Logging you in...</p>
+        </body>
+      </html>
+    `);
   } catch (error: any) {
     console.error("Error during Google OAuth callback:", error.message);
     res.status(500).json({ message: "Google Authentication Failed" });

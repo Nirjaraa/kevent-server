@@ -41,8 +41,13 @@ const bookTickets = async (req: Request, res: Response) => {
     const qrData = `User ID: ${userId}, Event ID: ${eventId}, Ticket Count: ${ticketCount}`;
     const qrCodeUrl = await QRCode.toDataURL(qrData); // Generates QR code as a data URL
 
-    const notification = await Notification.create({ userId, eventId, type: "Booked Tickets", message: `You have successfully booked ${ticketCount} tickets for the ${event.Title}.` });
-
+    const notification = await Notification.create({
+      userId,
+      eventId,
+      type: "Booked Tickets",
+      message: `You have successfully booked ${ticketCount} tickets for the ${event.Title}.`,
+      isRead: false,
+    });
     return res.status(201).json({
       message: "Tickets booked successfully.",
       ticket: newTicket,

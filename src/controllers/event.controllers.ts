@@ -3,6 +3,8 @@ import Event from "../models/event.model";
 import { Request, Response } from "express";
 import Ticket from "../models/ticket.model";
 import Notification from "../models/notification.model";
+import User from "../models/User.model";
+import * as XLSX from "xlsx";
 
 const createEvent = async (req: Request, res: Response) => {
   try {
@@ -208,37 +210,47 @@ const searchEvents = async (req: Request, res: Response) => {
   }
 };
 
-const uploadmainImage = async (req: Request, res: Response) => {
+const exportData = async (req: Request, res: Response) => {
   try {
-    if (!req.file) {
-      return res.status(400).send({ message: "No file uploaded." });
+    const eventId = req.params.id;
+    const tickets = await Ticket.find({ eventId });
+    if (tickets.length === 0) {
+      return res.status(404).json({ success: false, message: "No bookings found for this event" });
     }
-
-    // Retrieve the uploaded image URL from Cloudinary
-    const mainImage = req.file?.path;
-
-    // Find the event by its ID
-    const event = await Event.findById(req.params.eventId); // Use req.params to get the event ID
-
-    if (!event) {
-      return res.status(404).send({ message: "Event not found." });
-    }
-
-    // If the event already has a main image, update it; otherwise, set a new one
-    const updatedEvent = await Event.findByIdAndUpdate(req.params.eventId, { mainImage }, { new: true });
-
-    if (!updatedEvent) {
-      return res.status(404).send({ message: "Error updating the event." });
-    }
-
-    res.status(200).json({
-      message: updatedEvent.mainImage ? "Image updated successfully!" : "Image uploaded successfully for the first time!",
-      mainImage: updatedEvent.mainImage, // Send the updated image URL in the response
+    const users = await Promise.all(
+      tickets.map(async (ticket) => {
+        const user = await User.findById(ticket.userId).select("firstName lastName email");
+        if (user) {
+          return {
+            userId: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+          };
+        }
+      })
+    );
+    const filteredUsers = users.filter((user) => user !== null);
+    const worksheetData = filteredUsers.map((user) => ({
+      "First Name": user?.firstName,
+      "Last Name": user?.lastName,
+      Email: user?.email,
+    }));
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData, {
+      header: ["First Name", "Last Name", "Email"], // Define the headers
     });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+    // Write the workbook to a buffer
+    const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
+    // Set headers for the file download
+    res.setHeader("Content-Disposition", `attachment; filename=users_event_${eventId}.xlsx`);
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    return res.status(201).send(buffer);
   } catch (error) {
-    console.error(error);
-    res.status(500).send({ message: "Something went wrong." });
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
   }
 };
 
-export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents, uploadmainImage };
+export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents, exportData };
