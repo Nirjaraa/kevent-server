@@ -217,7 +217,7 @@ const updateProfile = async (req: Request, res: Response) => {
 const viewTickets = async (req: Request, res: Response) => {
   try {
     const userId = req.user;
-    const tickets = await Ticket.find({ userId }).populate("eventId", "Title date Venue").lean();
+    const tickets = await Ticket.find({ userId }).populate("eventId", "Title date Venue mainImage").lean();
     if (!tickets.length) {
       return res.status(404).json({ message: "No events found for this user." });
     }
@@ -233,7 +233,7 @@ const viewTickets = async (req: Request, res: Response) => {
 const viewEventsById = async (req: Request, res: Response) => {
   try {
     const userId = req.user.id;
-    const events = await Event.find({ userId }, "Title date Venue").lean();
+    const events = await Event.find({ userId }, "Title date Venue mainImage").lean();
     if (!events.length) {
       return res.status(404).json({ message: "No events found for this user." });
     }
