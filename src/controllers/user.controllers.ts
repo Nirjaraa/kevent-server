@@ -216,13 +216,21 @@ const updateProfile = async (req: Request, res: Response) => {
 //VIEW TICKETS BY ID
 const viewTickets = async (req: Request, res: Response) => {
   try {
-    const userId = req.user;
-    const tickets = await Ticket.find({ userId }).populate("eventId", "Title date Venue mainImage").lean();
+    const userId = req.user.id;
+    const currentDate = new Date();
+
+    const tickets = await Ticket.find({
+      userId,
+      "eventId.date": { $gte: currentDate },
+    })
+      .populate("eventId", "Title date Venue mainImage")
+      .lean();
+
     if (!tickets.length) {
-      return res.status(404).json({ message: "No events found for this user." });
+      return res.status(404).json({ message: "No upcoming events found." });
     }
 
-    return res.status(200).json({ message: "Your tickets  :", tickets });
+    return res.status(200).json({ tickets });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
     return res.status(500).json({ error: errorMessage });
@@ -233,12 +241,21 @@ const viewTickets = async (req: Request, res: Response) => {
 const viewEventsById = async (req: Request, res: Response) => {
   try {
     const userId = req.user.id;
-    const events = await Event.find({ userId }, "Title date Venue mainImage").lean();
+    const currentDate = new Date();
+
+    const events = await Event.find(
+      {
+        userId,
+        date: { $gte: currentDate },
+      },
+      "Title date Venue mainImage"
+    ).lean();
+
     if (!events.length) {
-      return res.status(404).json({ message: "No events found for this user." });
+      return res.status(404).json({ message: "No upcoming events found." });
     }
 
-    return res.status(200).json({ message: "Your created events:", events });
+    return res.status(200).json({ events });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
     return res.status(500).json({ error: errorMessage });
@@ -342,8 +359,8 @@ const expiredEvents = async (req: Request, res: Response) => {
     const currentDate = new Date();
 
     const expiredEvents = await Event.find({
-      userId: userId, // User is the creator of the event
-      date: { $lt: currentDate }, // Event date is in the past
+      userId: userId,
+      date: { $lt: currentDate },
     });
 
     if (expiredEvents.length === 0) {
@@ -353,7 +370,6 @@ const expiredEvents = async (req: Request, res: Response) => {
       });
     }
 
-    // Return the expired events
     return res.status(200).json({
       success: true,
       message: "Expired events retrieved successfully",
