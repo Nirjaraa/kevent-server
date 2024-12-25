@@ -221,7 +221,6 @@ const viewTickets = async (req: Request, res: Response) => {
 
     const tickets = await Ticket.find({
       userId,
-      "eventId.date": { $gte: currentDate },
     })
       .populate("eventId", "Title date Venue mainImage")
       .lean();
