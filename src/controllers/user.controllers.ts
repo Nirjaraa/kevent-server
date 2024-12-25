@@ -306,6 +306,10 @@ const expiredTickets = async (req: Request, res: Response) => {
 
     const tickets = await Ticket.find({ userId: userId });
 
+    if (!tickets.length) {
+      console.log("No tickets found for this user");
+    }
+
     // Use Promise.all to fetch event details for each ticket
     const ticketsWithEventDetails = await Promise.all(
       tickets.map(async (ticket) => {
@@ -342,7 +346,6 @@ const expiredEvents = async (req: Request, res: Response) => {
       date: { $lt: currentDate }, // Event date is in the past
     });
 
-    // If no expired events are found
     if (expiredEvents.length === 0) {
       return res.status(404).json({
         success: false,
