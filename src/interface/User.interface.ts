@@ -10,7 +10,7 @@ export interface IUser extends Document {
   department: string;
   year: number;
   avatarURL?: string;
-  exampleId?: string;
+  googleId?: string;
   resetPasswordOtp?: string;
   resetPasswordOtpExpires?: Date;
   emailVerified?: Boolean;

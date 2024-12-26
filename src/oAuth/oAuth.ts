@@ -34,7 +34,7 @@ export const googleCallback = async (req: Request, res: Response) => {
     const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
     const { data } = await oauth2.userinfo.get();
 
-    const { email, name, picture, verified_email } = data;
+    const { id, email, name, picture, verified_email } = data;
 
     // Extract first name and last name from the full name
     const [firstName, ...lastNameArray] = name?.split(" ") || [];
@@ -55,6 +55,7 @@ export const googleCallback = async (req: Request, res: Response) => {
         batch: "",
         department: "",
         year: "",
+        googleId: id,
       });
 
       await user.save();
@@ -62,23 +63,23 @@ export const googleCallback = async (req: Request, res: Response) => {
     } else {
       console.log("Existing user logged in via Google OAuth:", user);
     }
-
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, name: user.firstName + " " + user.lastName }, // Payload
-      process.env.JWT_SECRET as string, // Your JWT secret (directly use the environment variable)
-      { expiresIn: "3h" } // Expiration time (3 hours in this case)
-    );
-
+    const generateToken = (id: string) => {
+      return jwt.sign({ id }, process.env.JWT_SECRET as string, {
+        expiresIn: "3h",
+      });
+    };
+    const token = generateToken(user.id);
+    res.cookie("auth_token", token, { httpOnly: true, maxAge: 10 * 60 * 1000 });
     res.send(`
       <html>
-        <head>
-          <script>
-            window.opener.postMessage({ token: "${token}" }, "http://localhost:3001");
-            window.close();
-          </script>
-        </head>
         <body>
-          <p>Logging you in...</p>
+          <script>
+            // Ensure the message is only sent to the parent window
+            if (window.opener) {
+              window.opener.postMessage({ token: "${token}" }, "http://localhost:3001");
+            }
+            window.close(); // Close the popup window after sending the message
+          </script>
         </body>
       </html>
     `);
@@ -87,3 +88,31 @@ export const googleCallback = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Google Authentication Failed" });
   }
 };
+
+// Handle Google OAuth callback and save user to DB
+// export const googleLogin = async (req: Request, res: Response) => {
+//   const code = req.query.code as string;
+
+//   try {
+//     // Step 1: Exchange code for tokens
+//     const { tokens } = await oauth2Client.getToken(code);
+//     oauth2Client.setCredentials(tokens);
+
+//     // Step 2: Fetch user info from Google
+//     const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
+//     const { data } = await oauth2.userinfo.get();
+
+//     const { id } = data;
+
+//     const generateToken = (id: string) => {
+//       return jwt.sign({ id }, process.env.JWT_SECRET as string, {
+//         expiresIn: "3h",
+//       });
+//     };
+
+//     return res.status(201).json({ message: "Register  Successful", token: generateToken(user.id), user });
+//   } catch (error: any) {
+//     console.error("Error during Google OAuth callback:", error.message);
+//     res.status(500).json({ message: "Google Authentication Failed" });
+//   }
+// };

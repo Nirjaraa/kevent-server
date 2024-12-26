@@ -36,9 +36,10 @@ const UserSchema = new Schema<IUser>(
       type: Number,
       required: false,
     },
-    exampleId: {
+    googleId: {
       type: String,
-      required: false,
+      unique: true,
+      sparse: true,
     },
     resetPasswordOtp: {
       type: String,

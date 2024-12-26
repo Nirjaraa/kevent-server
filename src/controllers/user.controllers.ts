@@ -101,11 +101,6 @@ const login = async (req: Request, res: Response) => {
       return res.status(201).json({ message: "Login Successful", token: generateToken(user.id), user });
     }
 
-    if (user) {
-      console.log("Stored Email:", user.email);
-      console.log("Stored Hashed Password:", user.password);
-    }
-
     return res.status(404).json({ error: "Invalid Email and Password" });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
