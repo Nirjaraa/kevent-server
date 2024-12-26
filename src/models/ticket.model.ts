@@ -19,6 +19,9 @@ const ticketSchema = new Schema<ITicket>({
   ticketCount: {
     type: Number,
   },
+  contactNumber: {
+    type: Number,
+  },
 });
 
 const Ticket = mongoose.model<ITicket>("Ticket", ticketSchema);

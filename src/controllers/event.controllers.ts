@@ -210,6 +210,7 @@ const searchEvents = async (req: Request, res: Response) => {
   }
 };
 
+//View File
 const exportData = async (req: Request, res: Response) => {
   try {
     const eventId = req.params.id;
@@ -226,6 +227,7 @@ const exportData = async (req: Request, res: Response) => {
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
+            contactNumber: ticket.contactNumber,
           };
         }
       })
@@ -235,6 +237,7 @@ const exportData = async (req: Request, res: Response) => {
       "First Name": user?.firstName,
       "Last Name": user?.lastName,
       Email: user?.email,
+      "Contact Number": user?.contactNumber,
     }));
     const worksheet = XLSX.utils.json_to_sheet(worksheetData, {
       header: ["First Name", "Last Name", "Email"], // Define the headers

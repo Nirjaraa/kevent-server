@@ -5,4 +5,5 @@ export interface ITicket extends Document {
   eventId: mongoose.Schema.Types.ObjectId;
   capacity: Number;
   ticketCount: Number;
+  contactNumber: Number;
 }
