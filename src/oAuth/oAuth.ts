@@ -21,67 +21,21 @@ export const loginWithGoogle = (req: Request, res: Response) => {
   res.redirect(authUrl);
 };
 
-// Handle Google OAuth callback and save user to DB
 export const googleCallback = async (req: Request, res: Response) => {
   const code = req.query.code as string;
 
   try {
-    // Step 1: Exchange code for tokens
+    // Step 1: Exchange the code for access tokens
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
+    console.log(tokens);
 
-    // Step 2: Fetch user info from Google
-    const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
-    const { data } = await oauth2.userinfo.get();
-
-    const { id, email, name, picture, verified_email } = data;
-
-    // Extract first name and last name from the full name
-    const [firstName, ...lastNameArray] = name?.split(" ") || [];
-    const lastName = lastNameArray.join(" ");
-
-    // Step 3: Check if user already exists
-    let user = await User.findOne({ email });
-
-    if (!user) {
-      // Step 4: Create a new user if they don't exist
-      user = new User({
-        firstName: firstName || "Unknown",
-        lastName: lastName || "User",
-        email: email,
-        avatarURL: picture,
-        emailVerified: verified_email,
-        provider: "google",
-        batch: "",
-        department: "",
-        year: "",
-        googleId: id,
-      });
-
-      await user.save();
-      console.log("New user created via Google OAuth:", user);
-    } else {
-      console.log("Existing user logged in via Google OAuth:", user);
-    }
-    const generateToken = (id: string) => {
-      return jwt.sign({ id }, process.env.JWT_SECRET as string, {
-        expiresIn: "3h",
-      });
-    };
-    const token = generateToken(user.id);
-    res.cookie("auth_token", token, { httpOnly: true, maxAge: 10 * 60 * 1000 });
     res.send(`
-      <html>
-        <body>
-          <script>
-            // Ensure the message is only sent to the parent window
-            if (window.opener) {
-              window.opener.postMessage({ token: "${token}" }, "http://localhost:3001");
-            }
-            window.close(); // Close the popup window after sending the message
-          </script>
-        </body>
-      </html>
+      <script>
+        // Send the token to the opener window
+        window.opener.postMessage({ access_token: "${tokens.access_token}" }, "http://localhost:3001");
+        window.close();
+      </script>
     `);
   } catch (error: any) {
     console.error("Error during Google OAuth callback:", error.message);
@@ -89,30 +43,101 @@ export const googleCallback = async (req: Request, res: Response) => {
   }
 };
 
-// Handle Google OAuth callback and save user to DB
-// export const googleLogin = async (req: Request, res: Response) => {
-//   const code = req.query.code as string;
+export const signupWithGoogle = async (req: Request, res: Response) => {
+  const { access_token } = req.body;
+  if (!access_token || typeof access_token !== "string") {
+    return res.status(400).json({ message: "Access token is required and should be a string" });
+  }
+  try {
+    oauth2Client.setCredentials({ access_token });
 
-//   try {
-//     // Step 1: Exchange code for tokens
-//     const { tokens } = await oauth2Client.getToken(code);
-//     oauth2Client.setCredentials(tokens);
+    const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
+    const { data } = await oauth2.userinfo.get();
+    const { id, email, name, picture, verified_email } = data;
 
-//     // Step 2: Fetch user info from Google
-//     const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
-//     const { data } = await oauth2.userinfo.get();
+    const [firstName, ...lastNameArray] = name?.split(" ") || [];
+    const lastName = lastNameArray.join(" ");
 
-//     const { id } = data;
+    let user = await User.findOne({ email });
+    let userByEmail = await User.findOne({ email });
+    let userByGoogleId = await User.findOne({ googleId: id });
 
-//     const generateToken = (id: string) => {
-//       return jwt.sign({ id }, process.env.JWT_SECRET as string, {
-//         expiresIn: "3h",
-//       });
-//     };
+    if (userByEmail && userByEmail.googleId !== id) {
+      return res.status(400).json({ message: "This email is already associated with a different account." });
+    }
 
-//     return res.status(201).json({ message: "Register  Successful", token: generateToken(user.id), user });
-//   } catch (error: any) {
-//     console.error("Error during Google OAuth callback:", error.message);
-//     res.status(500).json({ message: "Google Authentication Failed" });
-//   }
-// };
+    if (userByGoogleId) {
+      return res.status(400).json({ message: "Account already exists with this Google ID" });
+    }
+    if (!user) {
+      user = new User({
+        firstName: firstName || "Unknown",
+        lastName: lastName || "User",
+        email: email,
+        avatarURL: picture,
+        emailVerified: verified_email,
+        provider: "google",
+        googleId: id,
+        batch: "",
+        department: "",
+        year: "",
+      });
+
+      await user.save();
+      console.log("New user created via Google OAuth:", user);
+    } else {
+      console.log("Existing user logged in via Google OAuth:", user);
+    }
+
+    const generateToken = (id: string) => {
+      return jwt.sign({ id }, process.env.JWT_SECRET as string, {
+        expiresIn: "3h",
+      });
+    };
+
+    const token = generateToken(user.id);
+    res.cookie("token", token, { httpOnly: true, maxAge: 10 * 60 * 1000 });
+    res.status(200).json({ message: "Signup successful", token });
+  } catch (error: any) {
+    console.error("Error during Google signup:", error.message);
+    res.status(500).json({ message: "Google Authentication Failed" });
+  }
+};
+
+export const googleLogin = async (req: Request, res: Response) => {
+  const { access_token } = req.body;
+  try {
+    oauth2Client.setCredentials({ access_token });
+
+    const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
+    const { data } = await oauth2.userinfo.get();
+
+    const { id, email } = data;
+
+    let userByEmail = await User.findOne({ email });
+
+    // Check if user already exists by googleId
+    let userByGoogleId = await User.findOne({ googleId: id });
+
+    if (userByEmail && userByEmail.googleId !== id) {
+      return res.status(400).json({ message: "This email is already associated with a different account." });
+    }
+
+    if (!userByGoogleId) {
+      return res.status(404).json({ message: "User not found. Please sign up first." });
+    }
+
+    const generateToken = (id: string) => {
+      return jwt.sign({ id }, process.env.JWT_SECRET as string, {
+        expiresIn: "3h",
+      });
+    };
+
+    const token = generateToken(userByGoogleId.id);
+
+    res.status(200).json({ message: "Login successful", token, user: userByGoogleId });
+  } catch (error: any) {
+    console.error("Error during Google login:", error.message);
+    res.status(500).json({ message: "Google Authentication Failed" });
+  }
+};
