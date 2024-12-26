@@ -240,7 +240,7 @@ const exportData = async (req: Request, res: Response) => {
       "Contact Number": user?.contactNumber,
     }));
     const worksheet = XLSX.utils.json_to_sheet(worksheetData, {
-      header: ["First Name", "Last Name", "Email"], // Define the headers
+      header: ["First Name", "Last Name", "Email", "Contact Number"], // Define the headers
     });
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
