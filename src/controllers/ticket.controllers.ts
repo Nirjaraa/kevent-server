@@ -5,6 +5,8 @@ import Ticket from "../models/ticket.model";
 import QRCode from "qrcode";
 import Notification from "../models/notification.model";
 import cron from "node-cron";
+import { sendEmail } from "../utils/sendEmail";
+import User from "../models/User.model";
 
 const bookTickets = async (req: Request, res: Response) => {
   try {
@@ -77,7 +79,13 @@ const bookTickets = async (req: Request, res: Response) => {
       isRead: false,
     });
 
-    res.status(200).json({ message: "Ticket booked and notification scheduled" });
+    // Send email to the user about the ticket booking
+    const user = await User.findById(userId); // Get user info
+    if (user) {
+      const subject = `Ticket Booking Confirmation for ${event.Title}`;
+      const text = `Dear ${user.firstName},\n\nYou have successfully booked ${ticketCount} tickets for the event "${event.Title}".\n\nYour tickets are confirmed, and you can use the attached QR code for event entry.\n\nBest regards,\nThe Kevent Team`;
+      await sendEmail(user.email, subject, text); // Send email to user
+    }
 
     return res.status(201).json({
       message: "Tickets booked successfully.",

@@ -5,6 +5,7 @@ import Ticket from "../models/ticket.model";
 import Notification from "../models/notification.model";
 import User from "../models/User.model";
 import * as XLSX from "xlsx";
+import { sendEmail } from "../utils/sendEmail";
 
 const createEvent = async (req: Request, res: Response) => {
   try {
@@ -115,7 +116,26 @@ const updateEvent = async (req: Request, res: Response) => {
     if (!updatedEvent) {
       return res.status(404).json({ error: "Event was not updated." });
     }
-    await Promise.all(tickets.map((ticket) => Notification.create({ userId: ticket.userId, eventId, type: "Updated Event", message: `${Title} has been updated.`, isRead: false })));
+    const eventTitle = updatedEvent.Title;
+    await Promise.all(
+      tickets.map(async (ticket) => {
+        const user = await User.findById(ticket.userId); // Assuming you have a User model
+        if (user) {
+          const subject = `${eventTitle} has been updated.`;
+          const text = `Dear ${user.firstName},\n\nThe event "${eventTitle}" you booked has been updated.\n\nBest regards,\nKevent Team`;
+          await sendEmail(user.email, subject, text);
+        }
+
+        // Send one notification for the update (not per ticket)
+        await Notification.create({
+          userId: ticket.userId,
+          eventId,
+          type: "Updated Event",
+          message: `${eventTitle} has been updated.`,
+          isRead: false,
+        });
+      })
+    );
     return res.status(200).json({ message: "Event updated successfully." });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
@@ -144,8 +164,25 @@ const deleteEvent = async (req: Request, res: Response) => {
     await Ticket.deleteMany({ eventId });
 
     const eventTitle = existingEvent.Title;
-    await Promise.all(tickets.map((ticket) => Notification.create({ userId: ticket.userId, eventId, type: "Deleted Event", message: `${eventTitle} has been deleted.`, isRead: false })));
 
+    await Promise.all(
+      tickets.map(async (ticket) => {
+        const user = await User.findById(ticket.userId);
+        if (user) {
+          const subject = `${eventTitle} has been deleted.`;
+          const text = `Dear ${user.firstName},\n\nThe event "${eventTitle}" you booked has been deleted.\n\nBest regards,\nKevent Team`;
+          await sendEmail(user.email, subject, text);
+        }
+
+        await Notification.create({
+          userId: ticket.userId,
+          eventId,
+          type: "Deleted Event",
+          message: `${eventTitle} has been deleted.`,
+          isRead: false,
+        });
+      })
+    );
     return res.status(200).json({ message: "Event deleted successfully." });
   } catch (error) {
     const errorMessage = errorHandler(error as Error);
