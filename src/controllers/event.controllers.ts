@@ -6,6 +6,7 @@ import Notification from "../models/notification.model";
 import User from "../models/User.model";
 import * as XLSX from "xlsx";
 import { sendEmail } from "../utils/sendEmail";
+import { EventCategory } from "../models/eventCategory";
 
 const createEvent = async (req: Request, res: Response) => {
   try {
@@ -293,4 +294,30 @@ const exportData = async (req: Request, res: Response) => {
   }
 };
 
-export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents, exportData };
+//Filtered Events
+const getEventsByCategory = async (req: Request, res: Response) => {
+  try {
+    const { category } = req.query;
+
+    if (!category || !Object.values(EventCategory).includes(category as EventCategory)) {
+      return res.status(400).json({
+        message: "Invalid category or category not provided",
+      });
+    }
+
+    const events = await Event.find({ category }).exec();
+
+    if (events.length === 0) {
+      return res.status(404).json({
+        message: "No events found for this category",
+      });
+    }
+
+    return res.status(200).json({ message: "Filtered events", events });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+
+export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents, exportData, getEventsByCategory };

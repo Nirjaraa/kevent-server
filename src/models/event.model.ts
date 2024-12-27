@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
 import { IEvent } from "../interface/event.interface";
+import { EventCategory } from "./eventCategory";
 
 const eventSchema = new Schema<IEvent>(
   {
@@ -17,7 +18,7 @@ const eventSchema = new Schema<IEvent>(
     },
     Venue: {
       type: String,
-      required: true, //not required for oauth
+      required: true,
     },
     date: {
       type: Date,
@@ -32,7 +33,6 @@ const eventSchema = new Schema<IEvent>(
       required: false,
     },
     Images: {
-      // Add exampleId field
       type: [String],
       required: false,
     },
@@ -54,6 +54,7 @@ const eventSchema = new Schema<IEvent>(
     },
     category: {
       type: String,
+      enum: Object.values(EventCategory),
       required: false,
     },
     bookedTickets: {
