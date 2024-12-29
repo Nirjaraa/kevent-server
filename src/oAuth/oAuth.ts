@@ -33,7 +33,7 @@ export const googleCallback = async (req: Request, res: Response) => {
     res.send(`
       <script>
         // Send the token to the opener window
-        window.opener.postMessage({ access_token: "${tokens.access_token}" }, "http://localhost:3001");
+        window.opener.postMessage({ access_token: "${tokens.access_token}" }, "http://localhost:3000");
         window.close();
       </script>
     `);

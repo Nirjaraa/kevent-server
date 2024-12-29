@@ -14,7 +14,7 @@ const app: Application = express();
 
 app.use(express.json());
 
-const allowedOrigins = process.env.NODE_ENV === "production" ? ["https://kevent-ggkh.vercel.app"] : ["http://localhost:3001"];
+const allowedOrigins = process.env.NODE_ENV === "production" ? ["https://kevent-ggkh.vercel.app"] : ["http://localhost:3000"];
 
 app.use(
   cors({
