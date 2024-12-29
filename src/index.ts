@@ -14,11 +14,9 @@ const app: Application = express();
 
 app.use(express.json());
 
-const allowedOrigins = process.env.NODE_ENV === "production" ? ["https://kevent-ggkh.vercel.app"] : ["http://localhost:3000"];
-
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: ["http://localhost:3000", "https://kevent-bi96.vercel.app"],
     credentials: true,
   })
 );
@@ -32,9 +30,9 @@ app.use("/", authRoutes);
 const port = process.env.PORT || 3000;
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Welcome to the Kevent backend server!");
+  res.send("Welcome to the port 3000");
 });
 
 app.listen(port, () => {
-  console.log(`Backend connected successfully on port ${port}`);
+  console.log(`Connected successfully on port ${port}`);
 });
