@@ -33,7 +33,7 @@ export const googleCallback = async (req: Request, res: Response) => {
     res.send(`
       <script>
         // Send the token to the opener window
-        window.opener.postMessage({ access_token: "${tokens.access_token}" }, "http://localhost:3000");
+        window.opener.postMessage({ access_token: "${tokens.access_token}" }, "https://kevent-ce3u.vercel.app");
         window.close();
       </script>
     `);

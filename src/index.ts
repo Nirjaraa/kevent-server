@@ -16,7 +16,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://kevent-bi96.vercel.app"],
+    origin: ["http://localhost:3000", "https://kevent-ce3u.vercel.app"],
     credentials: true,
   })
 );
