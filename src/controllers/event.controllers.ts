@@ -6,7 +6,7 @@ import Notification from "../models/notification.model";
 import User from "../models/User.model";
 import * as XLSX from "xlsx";
 import { sendEmail } from "../utils/sendEmail";
-import { EventCategory } from "../models/eventCategory";
+import { EventCategory, EventClub, EventDepartment } from "../models/eventCategory";
 
 const createEvent = async (req: Request, res: Response) => {
   try {
@@ -159,10 +159,12 @@ const deleteEvent = async (req: Request, res: Response) => {
     }
     const deletedEvent = await Event.findByIdAndDelete(eventId);
     const tickets = await Ticket.find({ eventId });
+    if (tickets.length > 0) {
+      await Ticket.deleteMany({ eventId });
+    }
     if (!deletedEvent) {
       return res.status(404).json({ error: "Event not found." });
     }
-    await Ticket.deleteMany({ eventId });
 
     const eventTitle = existingEvent.Title;
 
@@ -320,4 +322,53 @@ const getEventsByCategory = async (req: Request, res: Response) => {
   }
 };
 
-export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents, exportData, getEventsByCategory };
+const getEventsByDepartment = async (req: Request, res: Response) => {
+  try {
+    const { department } = req.query;
+
+    if (!department || !Object.values(EventDepartment).includes(department as EventDepartment)) {
+      return res.status(400).json({
+        message: "Invalid department  is not provided",
+      });
+    }
+
+    const events = await Event.find({ department }).exec();
+
+    if (events.length === 0) {
+      return res.status(404).json({
+        message: "No events found for this department",
+      });
+    }
+
+    return res.status(200).json({ message: "Filtered events", events });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+
+const getEventsByClub = async (req: Request, res: Response) => {
+  try {
+    const { club } = req.query;
+
+    if (!club || !Object.values(EventClub).includes(club as EventClub)) {
+      return res.status(400).json({
+        message: "Invalid club  is not provided",
+      });
+    }
+
+    const events = await Event.find({ club }).exec();
+
+    if (events.length === 0) {
+      return res.status(404).json({
+        message: "No events found for this club",
+      });
+    }
+
+    return res.status(200).json({ message: "Filtered events", events });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+export { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents, exportData, getEventsByCategory, getEventsByDepartment, getEventsByClub };

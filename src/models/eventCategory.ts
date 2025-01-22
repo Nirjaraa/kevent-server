@@ -6,3 +6,18 @@ export enum EventCategory {
   Meetup = "meetup",
   Others = "others",
 }
+
+export enum EventDepartment {
+  DOCSE = "docse",
+  DOEEE = "doeee",
+  Civil = "civil",
+  GE = "ge",
+}
+
+export enum EventClub {
+  Kucc = "kucc",
+  Seee = "seee",
+  Aisec = "aisec",
+  Leo = "leo",
+  Rotract = "rotract",
+}

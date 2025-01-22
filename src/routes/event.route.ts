@@ -1,6 +1,17 @@
 import { Router } from "express";
 const router: Router = Router();
-import { createEvent, updateEvent, deleteEvent, viewAllEvents, viewAnEvent, searchEvents, exportData, getEventsByCategory } from "../controllers/event.controllers";
+import {
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  viewAllEvents,
+  viewAnEvent,
+  searchEvents,
+  exportData,
+  getEventsByCategory,
+  getEventsByDepartment,
+  getEventsByClub,
+} from "../controllers/event.controllers";
 import { isUser } from "../middlware/auth-Middleware";
 import multer from "multer";
 import { storage, uploadMiddleware } from "../db/cloudinaryConfig";
@@ -15,5 +26,7 @@ router.get("/viewevent/:id", viewAnEvent);
 router.get("/search", searchEvents);
 router.get("/export/:id", isUser, exportData);
 router.get("/eventsByCategory", getEventsByCategory);
+router.get("/eventsByDepartment", getEventsByDepartment);
+router.get("/eventsByClub", getEventsByClub);
 
 export default router;
