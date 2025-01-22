@@ -396,6 +396,36 @@ const resetPassword = async (req: Request, res: Response) => {
     return res.status(500).json({ error: errorMessage });
   }
 };
+
+const verifyResetOtp = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const user = await User.findOne({
+      email,
+      resetPasswordOtp: otp,
+      resetPasswordOtpExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordOtpExpires = undefined;
+    await user.save();
+
+    return res.status(200).json({ message: "OTP verified" });
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+
 export {
   expiredEvents,
   expiredTickets,
@@ -411,4 +441,5 @@ export {
   viewTickets,
   viewEventsById,
   uploadAvatar,
+  verifyResetOtp,
 };

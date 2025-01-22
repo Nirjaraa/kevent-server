@@ -15,6 +15,7 @@ import {
   expiredEvents,
   expiredTickets,
   resetPassword,
+  verifyResetOtp,
 } from "../controllers/user.controllers";
 import { isUser } from "../middlware/auth-Middleware";
 import multer from "multer";
@@ -36,6 +37,7 @@ router.post("/upload-profileImage", isUser, imageUpload.single("avatar"), upload
 router.get("/expiredtickets", isUser, expiredTickets);
 router.get("/expiredevents", isUser, expiredEvents);
 router.post("/reset-password", resetPassword);
+router.post("/verifyotp", verifyResetOtp);
 
 // router.get("/events/:eventId/attendees/export", isUser, exportAttendeesToCSV);
 
