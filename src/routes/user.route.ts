@@ -26,7 +26,7 @@ router.post("/register", registerUsers);
 router.post("/login", login);
 router.post("/verifyemail", verifyEmail);
 router.post("/resendOTP", resendOtp);
-router.post("/forgot-password", isUser, forgotPassword);
+router.post("/forgot-password", forgotPassword);
 router.put("/change-password", isUser, changePassword);
 router.get("/profile", isUser, getProfile);
 router.put("/update-profile", isUser, updateProfile);
