@@ -374,5 +374,41 @@ const expiredEvents = async (req: Request, res: Response) => {
     return res.status(500).json({ error: errorMessage });
   }
 };
+const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    console.log("User found:", user);
 
-export { expiredEvents, expiredTickets, registerUsers, login, forgotPassword, changePassword, updateProfile, verifyEmail, resendOtp, getProfile, viewTickets, viewEventsById, uploadAvatar };
+    if (!user) {
+      return res.status(400).send("User not found");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).send("Password changed successfully");
+  } catch (error) {
+    const errorMessage = errorHandler(error as Error);
+    return res.status(500).json({ error: errorMessage });
+  }
+};
+export {
+  expiredEvents,
+  expiredTickets,
+  registerUsers,
+  login,
+  forgotPassword,
+  changePassword,
+  updateProfile,
+  verifyEmail,
+  resendOtp,
+  resetPassword,
+  getProfile,
+  viewTickets,
+  viewEventsById,
+  uploadAvatar,
+};
