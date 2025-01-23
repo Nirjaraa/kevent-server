@@ -10,7 +10,7 @@ import { EventCategory, EventClub, EventDepartment } from "../models/eventCatego
 
 const createEvent = async (req: Request, res: Response) => {
   try {
-    const { Title, Description, contactNumber, Venue, date, Price, department, club, category } = req.body;
+    const { Title, Description, contactNumber, Venue, date, Price, department, club, capacity, category } = req.body;
 
     const userId = req.user.id;
     if (!Title || !Description || !contactNumber || !Venue || !date || !Price) {
@@ -51,6 +51,7 @@ const createEvent = async (req: Request, res: Response) => {
       mainImage,
       department,
       club,
+      capacity,
       category,
     });
 
